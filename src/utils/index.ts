@@ -72,7 +72,7 @@ export const mergeRequestOptions: TMergeOptions = (options, options2Merge) => {
   }
 }
 
-// 请求异常
+// Request Error
 export class RequestError extends Error {
   type: string
   constructor(text: any, type = 'RequestError') {
@@ -82,7 +82,7 @@ export class RequestError extends Error {
   }
 }
 
-// 响应异常
+// Response Error
 export class ResponseError extends Error {
   type: string
   constructor(text: any, type = 'ResponseError') {
