@@ -1,0 +1,57 @@
+import dts from 'rollup-plugin-dts'
+import resolve from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
+import typescript from 'rollup-plugin-typescript2'
+import json from '@rollup/plugin-json'
+import babel from '@rollup/plugin-babel'
+import { DEFAULT_EXTENSIONS } from '@babel/core'
+
+const packname = 'Devix'
+const entries = ['src/index.ts']
+const plugins = [
+  resolve({
+    preferBuiltins: true
+  }),
+  json(),
+  commonjs(),
+  typescript(),
+  babel({
+    babelHelpers: 'bundled',
+    exclude: 'node_modules/**',
+    extensions: [...DEFAULT_EXTENSIONS, '.ts']
+  })
+]
+
+const rollup_config = [
+  ...entries.map((input) => ({
+    input,
+    output: [
+      {
+        file: input.replace('src/', 'dist/').replace('.ts', '.esm.js'),
+        format: 'es'
+      },
+      {
+        file: input.replace('src/', 'dist/').replace('.ts', '.cjs.js'),
+        format: 'cjs'
+      },
+      {
+        name: packname,
+        file: input.replace('src/', 'dist/').replace('.ts', '.umd.js'),
+        format: 'umd'
+      }
+    ],
+    plugins
+  })),
+  ...entries.map((input) => ({
+    input,
+    output: [
+      {
+        file: input.replace('src/', 'dist/').replace('.ts', '.d.ts'),
+        format: 'esm'
+      }
+    ],
+    plugins: [dts({ respectExternal: true })]
+  }))
+]
+
+export default rollup_config

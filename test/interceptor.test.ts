@@ -1,0 +1,139 @@
+import { createTestServer } from 'devix-server'
+import { IDataObject } from '../types'
+import {
+  testGetResponseSuccess,
+  testPostResponseSuccess
+} from './serverTestOptions'
+import { createVeloxa, veloxa } from '../src'
+
+// Config Server
+let server: IDataObject
+const routes = [
+  {
+    url: '/testPost',
+    method: 'post',
+    handler: async (ctx: any) => {
+      ctx.body = { ...testPostResponseSuccess, data: ctx.request.body }
+    }
+  },
+  {
+    url: '/testGet',
+    method: 'get',
+    handler: async (ctx: any) => {
+      const { name, age } = ctx.query
+      const ids = getQueryArray('ids', ctx.query).map((i) => parseFloat(i))
+
+      ctx.body = {
+        ...testGetResponseSuccess,
+        data: {
+          name,
+          age: parseFloat(age),
+          ids
+        }
+      }
+    }
+  }
+]
+beforeAll(async () => {
+  server = await createTestServer({ routes })
+})
+afterAll(() => {
+  server.close()
+})
+const prefix = (api: string) => `${server.url}${api}`
+
+// other utils
+function getQueryArray(keyName: string, query: IDataObject) {
+  return Object.keys(query)
+    .filter((key) => key.startsWith(`${keyName}[`))
+    .map((key) => query[key])
+}
+
+test(`Is Veloxa's default interceptor handling requests correctly?`, async () => {
+  const requestParams = {
+    name: 'King-3',
+    age: 18,
+    ids: [36, 20, 3]
+  }
+
+  const getTesult = await veloxa(prefix('/testGet'), {
+    params: requestParams,
+    interceptors: {
+      requestInterceptor: (config) => {
+        config.params.name = 'king3_get'
+
+        return config
+      }
+    }
+  })
+
+  const postTesult = await veloxa(prefix('/testPost'), {
+    data: requestParams,
+    method: 'POST',
+    interceptors: {
+      requestInterceptor: (config) => {
+        config.data.name = 'king3_post'
+
+        return config
+      }
+    }
+  })
+
+  let isHandleParams = getTesult.data.name === 'king3_get' ?? false
+  let isHandleData = postTesult.data.name === 'king3_post' ?? false
+
+  expect(isHandleParams).toBe(true)
+  expect(isHandleData).toBe(true)
+})
+
+test(`Is Veloxa's custom interceptor handling requests correctly?`, async () => {
+  // init request
+  const request = createVeloxa({
+    baseURL: server.url,
+    autojson: true,
+    interceptors: {
+      requestInterceptor(config) {
+        config.data!.isInstanceRequestInterceptor = true
+
+        return config
+      },
+      responseInterceptor(response) {
+        ;(response as any).data.isInstanceResponseInterceptor = true
+
+        return response
+      }
+    }
+  })
+
+  const requestParams = {
+    name: 'King-3',
+    age: 18
+  }
+
+  const result = await request.post('/testPost', requestParams, {
+    interceptors: {
+      requestInterceptor(config) {
+        config.data!.isOnceRequestInterceptor = true
+
+        return config
+      },
+      responseInterceptor(response) {
+        response.json = () =>
+          response
+            .clone()
+            .json()
+            .then((res) => {
+              res.data.isOnceResponseInterceptor = true
+              return res
+            })
+
+        return response
+      }
+    }
+  })
+
+  expect(result.data.isInstanceRequestInterceptor).toBe(true)
+  expect(result.data.isInstanceResponseInterceptor).toBe(true)
+  expect(result.data.isOnceRequestInterceptor).toBe(true)
+  expect(result.data.isOnceResponseInterceptor).toBe(true)
+})

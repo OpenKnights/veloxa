@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "lib": ["esnext", "DOM", "DOM.Iterable"],
+    "useDefineForClassFields": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "typeRoots": ["node_modules/@types", "types/index.d.ts"]
+  },
+  "include": [
+    "src/*.ts",
+    "types/index.d.ts",
+    "src/interceptor/index.ts",
+    "src/plugins/index.ts",
+    "src/global/index.ts",
+    "src/utils/index.ts"
+  ]
+}
