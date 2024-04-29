@@ -1,4 +1,3 @@
-import 'isomorphic-fetch'
 import interceptor from './interceptor'
 import { IVeloxaInit, TVeloxaInput } from '../types'
 import { isType, RequestError } from './utils'
