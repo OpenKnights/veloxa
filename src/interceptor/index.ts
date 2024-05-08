@@ -44,8 +44,4 @@ const interceptor = {
   use: (type: string, args: any[]) => interceptors[type](...args)
 }
 
-// use: (executes: Array<Function>, params: IDataObject) => {
-//   executes.forEach((fn) => fn(params))
-// }
-
 export default interceptor

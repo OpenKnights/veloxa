@@ -29,7 +29,10 @@ export function initialConfigPlugin(config: IVeloxaInit) {
 
 // Initialize Plugins's usage function.
 const plugins = {
-  use: (executes: Array<Function>, params: IDataObject) => {
+  use: (
+    executes: Array<(params: IDataObject) => void>,
+    params: IDataObject
+  ) => {
     executes.forEach((fn) => fn(params))
   }
 }

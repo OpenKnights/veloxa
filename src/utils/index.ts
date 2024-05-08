@@ -19,9 +19,9 @@ export const isType: TIsType = (type, target) =>
 // ueage function handle object
 export const dealWithObject: (
   object: IDataObject,
-  handler: Function
+  handler: (object: any) => any
 ) => IDataObject = (object, handler) => {
-  if (handler && typeof handler == 'function') return handler(object) || object
+  if (handler && typeof handler === 'function') return handler(object) || object
   return object
 }
 
@@ -41,8 +41,8 @@ export const transformGetParams: TTransGetParams = (params) => {
     for (const key of Object.keys(value)) {
       if (isType('empty', value)) continue
 
-      const params = propName + `[${key}]`
-      const subPart = `${encodeURIComponent(params)}=`
+      const paramsStr = `${propName}[${key}]`
+      const subPart = `${encodeURIComponent(paramsStr)}=`
 
       result += `${subPart + encodeURIComponent(value[key])}&`
     }
@@ -75,6 +75,7 @@ export const mergeRequestOptions: TMergeOptions = (options, options2Merge) => {
 // Request Error
 export class RequestError extends Error {
   type: string
+
   constructor(text: any, type = 'RequestError') {
     super(text)
     this.name = 'RequestError'
@@ -85,6 +86,7 @@ export class RequestError extends Error {
 // Response Error
 export class ResponseError extends Error {
   type: string
+
   constructor(text: any, type = 'ResponseError') {
     super(text)
     this.name = 'ResponseError'

@@ -1,19 +1,32 @@
 import { createTestServer } from 'devix-server'
 import { IDataObject } from '../types'
-import {
-  testGetResponseSuccess,
-  testPostResponseSuccess
-} from './serverTestOptions'
 import { createVeloxa, veloxa } from '../src'
+
+// other utils
+function getQueryArray(keyName: string, query: IDataObject) {
+  return Object.keys(query)
+    .filter((key) => key.startsWith(`${keyName}[`))
+    .map((key) => query[key])
+}
 
 // Config Server
 let server: IDataObject
+const testGetResponse = {
+  code: 0,
+  data: null,
+  message: `POST 接口测试: /testGet`
+}
+const testPostResponse = {
+  code: 0,
+  data: null,
+  message: `POST 接口测试: /testPost`
+}
 const routes = [
   {
     url: '/testPost',
     method: 'post',
     handler: async (ctx: any) => {
-      ctx.body = { ...testPostResponseSuccess, data: ctx.request.body }
+      ctx.body = { ...testPostResponse, data: ctx.request.body }
     }
   },
   {
@@ -24,7 +37,7 @@ const routes = [
       const ids = getQueryArray('ids', ctx.query).map((i) => parseFloat(i))
 
       ctx.body = {
-        ...testGetResponseSuccess,
+        ...testGetResponse,
         data: {
           name,
           age: parseFloat(age),
@@ -41,13 +54,6 @@ afterAll(() => {
   server.close()
 })
 const prefix = (api: string) => `${server.url}${api}`
-
-// other utils
-function getQueryArray(keyName: string, query: IDataObject) {
-  return Object.keys(query)
-    .filter((key) => key.startsWith(`${keyName}[`))
-    .map((key) => query[key])
-}
 
 test(`Is Veloxa's default interceptor handling requests correctly?`, async () => {
   const requestParams = {

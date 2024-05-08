@@ -1,7 +1,6 @@
 import { createTestServer } from 'devix-server'
 import { veloxa } from '../src/index'
 import { IDataObject } from '../types'
-import { testDelayResponseSuccess } from './serverTestOptions'
 
 async function delayer(time = 2000) {
   return new Promise((resolve) => {
@@ -9,6 +8,11 @@ async function delayer(time = 2000) {
       resolve({})
     }, time)
   })
+}
+const testDelayResponse = {
+  code: 0,
+  data: null,
+  message: `延迟接口测试: /testDelay`
 }
 
 let server: IDataObject
@@ -20,7 +24,7 @@ const routes = [
       await delayer(1000)
       await next()
 
-      ctx.body = testDelayResponseSuccess
+      ctx.body = testDelayResponse
     }
   }
 ]
@@ -57,8 +61,7 @@ test('Will timeout be cancelled if request succeeds early?', async () => {
     }
   })
 
-  const isCancelledTimeout =
-    response.message === testDelayResponseSuccess.message
+  const isCancelledTimeout = response.message === testDelayResponse.message
 
   expect(isCancelledTimeout).toBe(true)
 })

@@ -1,7 +1,6 @@
 import { createTestServer } from 'devix-server'
 import { veloxa } from '../src/index'
 import { IDataObject } from '../types'
-import { testDelayResponseSuccess } from './serverTestOptions'
 
 async function delayer(time = 2000) {
   return new Promise((resolve) => {
@@ -12,6 +11,11 @@ async function delayer(time = 2000) {
 }
 
 let server: IDataObject
+const testDelayResponse = {
+  code: 0,
+  data: null,
+  message: `延迟接口测试: /testDelay`
+}
 const routes = [
   {
     url: '/testDelay',
@@ -20,7 +24,7 @@ const routes = [
       await delayer(1000)
       await next()
 
-      ctx.body = testDelayResponseSuccess
+      ctx.body = testDelayResponse
     }
   }
 ]

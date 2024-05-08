@@ -1,14 +1,19 @@
 import dts from 'rollup-plugin-dts'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
-import typescript from 'rollup-plugin-typescript2'
 import json from '@rollup/plugin-json'
+import alias from '@rollup/plugin-alias'
+import typescript from 'rollup-plugin-typescript2'
+import esbuild from 'rollup-plugin-esbuild'
 import babel from '@rollup/plugin-babel'
 import { DEFAULT_EXTENSIONS } from '@babel/core'
 
-const packname = 'Devix'
+const libraryName = 'Template'
 const entries = ['src/index.ts']
 const plugins = [
+  alias({
+    entries: [{ find: /^node:(.+)$/, replacement: '$1' }]
+  }),
   resolve({
     preferBuiltins: true
   }),
@@ -19,10 +24,11 @@ const plugins = [
     babelHelpers: 'bundled',
     exclude: 'node_modules/**',
     extensions: [...DEFAULT_EXTENSIONS, '.ts']
-  })
+  }),
+  esbuild()
 ]
 
-const rollup_config = [
+const rollupConfig = [
   ...entries.map((input) => ({
     input,
     output: [
@@ -35,7 +41,7 @@ const rollup_config = [
         format: 'cjs'
       },
       {
-        name: packname,
+        name: libraryName,
         file: input.replace('src/', 'dist/').replace('.ts', '.umd.js'),
         format: 'umd'
       }
@@ -46,7 +52,7 @@ const rollup_config = [
     input,
     output: [
       {
-        file: input.replace('src/', 'dist/').replace('.ts', '.d.ts'),
+        file: input.replace('src/', './').replace('.ts', '.d.ts'),
         format: 'esm'
       }
     ],
@@ -54,4 +60,4 @@ const rollup_config = [
   }))
 ]
 
-export default rollup_config
+export default rollupConfig

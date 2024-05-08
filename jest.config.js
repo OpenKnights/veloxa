@@ -10,7 +10,8 @@ const config = {
   extensionsToTreatAsEsm: ['.ts'],
   preset: 'ts-jest',
   testEnvironment: 'node',
-  coveragePathIgnorePatterns: ['/node_modules/']
+  coveragePathIgnorePatterns: ['/node_modules/'],
+  collectCoverageFrom: ['test/*.{js,jsx, tsx, ts}']
 }
 
 export default config

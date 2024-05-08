@@ -10,14 +10,7 @@
     "esModuleInterop": true,
     "strict": true,
     "strictNullChecks": true,
-    "typeRoots": ["node_modules/@types", "types/index.d.ts"]
+    "allowSyntheticDefaultImports": true
   },
-  "include": [
-    "src/*.ts",
-    "types/index.d.ts",
-    "src/interceptor/index.ts",
-    "src/plugins/index.ts",
-    "src/global/index.ts",
-    "src/utils/index.ts"
-  ]
+  "include": ["src/**/*.ts", "types/index.ts"]
 }

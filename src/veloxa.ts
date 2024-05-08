@@ -25,7 +25,7 @@ async function veloxa(input: TVeloxaInput, init: IVeloxaInit = {}) {
 
   // fetch sendout
   let response: Response
-  let timer = undefined
+  let timer
   try {
     // fetch timeout
     if (timeout > 0) {
@@ -74,7 +74,7 @@ async function veloxa(input: TVeloxaInput, init: IVeloxaInit = {}) {
   interceptor.use('response', [response, responseInterceptor])
 
   // fetch result
-  const isJson = response.ok && autojson && typeof response.json == 'function'
+  const isJson = response.ok && autojson && typeof response.json === 'function'
   const result = isJson ? response.json() : response
   return result
 }
