@@ -37,9 +37,10 @@
   ],
   "scripts": {
     "build": "rollup -c",
+    "clear": "pwsh clear.ps1",
     "test": "jest",
     "lint": "npx eslint src/**/*.ts && npx eslint test/**/*.ts && npx eslint types/**/*.ts",
-    "prettier": "npx prettier --config .prettierrc.json --write ./**/*.{ts,json}",
+    "prettier": "npx prettier --config .prettierrc.json --write ./**/*.{js,ts,json}",
     "releases": "pwsh publish.ps1",
     "versihint": "npx bump"
   },
