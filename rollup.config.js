@@ -1,14 +1,14 @@
-import dts from 'rollup-plugin-dts'
-import resolve from '@rollup/plugin-node-resolve'
+import { DEFAULT_EXTENSIONS } from '@babel/core'
+import alias from '@rollup/plugin-alias'
+import babel from '@rollup/plugin-babel'
 import commonjs from '@rollup/plugin-commonjs'
 import json from '@rollup/plugin-json'
-import alias from '@rollup/plugin-alias'
-import typescript from 'rollup-plugin-typescript2'
+import resolve from '@rollup/plugin-node-resolve'
+import dts from 'rollup-plugin-dts'
 import esbuild from 'rollup-plugin-esbuild'
-import babel from '@rollup/plugin-babel'
-import { DEFAULT_EXTENSIONS } from '@babel/core'
+import typescript from 'rollup-plugin-typescript2'
 
-const libraryName = 'Template'
+const libraryName = 'Veloxa'
 const entries = ['src/index.ts']
 const plugins = [
   alias({

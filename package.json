@@ -1,7 +1,7 @@
 {
   "name": "veloxa",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Veloxa is a fast, native request library based on the Fetch API.",
   "author": "king-3 <w2196592083@gmail.com>",
   "license": "MIT",
@@ -56,7 +56,7 @@
     "@types/jest": "^29.5.12",
     "@typescript-eslint/eslint-plugin": "^7.8.0",
     "@typescript-eslint/parser": "^7.8.0",
-    "devix-server": "^1.0.2",
+    "devix-server": "^1.2.0",
     "esbuild": "^0.21.0",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-base": "^15.0.0",

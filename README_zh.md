@@ -1,13 +1,13 @@
 # Veloxa
 
-> Veloxa 是一个基于 Fetch API 的快速、原生的请求库。（ 简体中文 | [English](README_zh-CN.md) ）
+> Veloxa 是一个基于 Fetch API 的快速、原生的请求库。（ 简体中文 | [English](README.md) ）
 
 ## 安装
 
 请确保您在 Node.js 环境下使用 npm 或其他包管理器安装此库。
 
 ```shell
-npm install --save-dev veloxa
+npm install --save veloxa
 ```
 
 然后，利用现代的模块捆绑工具，如 Vite 或 Webpack，以模块化的语法引入此库。

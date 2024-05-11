@@ -1,13 +1,13 @@
 # Veloxa
 
-> Veloxa is a fast, native request library based on the Fetch API.（ English | [简体中文](README_zh-CN.md) ）
+> Veloxa is a fast, native request library based on the Fetch API.（ English | [简体中文](README_zh.md) ）
 
 ## Install
 
 Please make sure you install this library using npm or another package manager in a Node.js environment.
 
 ```shell
-npm install --save-dev veloxa
+npm install --save veloxa
 ```
 
 Then, utilize modern module bundling tools such as Vite or Webpack to import this library using modular syntax.
