@@ -1,5 +1,5 @@
-import { createTestServer } from 'devix-server'
-import { IDataObject } from '../types'
+import type { IDataObject } from '../types'
+import { createTestServer } from 'mock-server'
 import { createVeloxa, veloxa } from '../src'
 
 // other utils
@@ -25,22 +25,24 @@ const routes = [
   {
     url: '/testPost',
     method: 'post',
-    handler: async (ctx: any) => {
+    handler: (ctx: any) => {
       ctx.body = { ...testPostResponse, data: ctx.request.body }
     }
   },
   {
     url: '/testGet',
     method: 'get',
-    handler: async (ctx: any) => {
+    handler: (ctx: any) => {
       const { name, age } = ctx.query
-      const ids = getQueryArray('ids', ctx.query).map((i) => parseFloat(i))
+      const ids = getQueryArray('ids', ctx.query).map((i) =>
+        Number.parseFloat(i)
+      )
 
       ctx.body = {
         ...testGetResponse,
         data: {
           name,
-          age: parseFloat(age),
+          age: Number.parseFloat(age),
           ids
         }
       }
@@ -85,8 +87,8 @@ test(`Is Veloxa's default interceptor handling requests correctly?`, async () =>
     }
   })
 
-  let isHandleParams = getTesult.data.name === 'king3_get' ?? false
-  let isHandleData = postTesult.data.name === 'king3_post' ?? false
+  const isHandleParams = getTesult.data.name === 'king3_get'
+  const isHandleData = postTesult.data.name === 'king3_post'
 
   expect(isHandleParams).toBe(true)
   expect(isHandleData).toBe(true)

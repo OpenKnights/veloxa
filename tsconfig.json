@@ -1,16 +1,15 @@
 {
+  // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     "target": "esnext",
-    "module": "esnext",
     "lib": ["esnext", "DOM", "DOM.Iterable"],
-    "useDefineForClassFields": true,
-    "skipLibCheck": true,
-    "moduleResolution": "node",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "esModuleInterop": true,
     "strict": true,
-    "strictNullChecks": true,
-    "allowSyntheticDefaultImports": true
+    "declaration": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "types/index.ts"]
+  "include": ["src/**/*.ts", "**/mockServer/**/*.ts"]
 }

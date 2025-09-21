@@ -14,10 +14,12 @@ npm install --save veloxa
 
 ```javascript
 // 使用 ES Module
-import { [[ModuleName]] } from 'veloxa'
+import { veloxa } from 'veloxa'
+```
 
+```javascript
 // 使用 CommonJS
-const { [[ModuleName]]  } = require('veloxa')
+const { veloxa } = require('veloxa')
 ```
 
 ## 使用
@@ -32,7 +34,7 @@ const requestParams = {
 }
 
 // 使用 request
-let res1 = await request.get(
+const res1 = await request.get(
   'http://localhost:8080/testDelay',
   { name: 'king-3' },
   {
@@ -70,7 +72,7 @@ const veloxaReqeust = createVeloxa({
   autojson: false,
   interceptors: {
     requestInterceptor(config) {
-      config.headers['Authorization'] = 'Bearer kc3jn313d0193ksd1=120812d'
+      config.headers.Authorization = 'Bearer kc3jn313d0193ksd1=120812d'
 
       return config
     },
@@ -81,7 +83,7 @@ const veloxaReqeust = createVeloxa({
     }
   }
 })
-const res2 = await veloxaReqeust.post('/testPost', requestParams, {
+const res3 = await veloxaReqeust.post('/testPost', requestParams, {
   interceptors: {
     responseInterceptor(response) {
       response.json = () =>
@@ -97,7 +99,7 @@ const res2 = await veloxaReqeust.post('/testPost', requestParams, {
     }
   }
 })
-console.log(`res2:`, res2)
+console.log(`res3:`, res3)
 
 // 拦截器执行顺序:
 // 1. InstanceInterceptors requestInterceptor
@@ -142,15 +144,15 @@ setTimeout(() => {
   controller.abort()
 }, 800)
 
-let response = await veloxa('http://localhost:3060/testDelay'), {
+const response = await veloxa('http://localhost:3060/testDelay', {
   controller,
-  autojson:false,
+  autojson: false,
   errorHandler(error) {
     const { ok = false, ...err } = error
     return { ok, ...err }
   },
   requestInterceptor(config) {
-    config.headers['Authorization'] = 'Bearer kc3jn313d0193ksd1=120812d'
+    config.headers.Authorization = 'Bearer kc3jn313d0193ksd1=120812d'
     return config
   },
   responseInterceptor(response) {

@@ -1,8 +1,10 @@
-import { createTestServer } from 'devix-server'
-import { veloxa } from '../src/index'
-import { IDataObject } from '../types'
+import type { MethodOption, Server } from 'mock-server'
+import { createMockServer } from 'mock-server'
 
-async function delayer(time = 2000) {
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { veloxa } from '../src'
+
+function delayer(time = 2000) {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({})
@@ -10,45 +12,49 @@ async function delayer(time = 2000) {
   })
 }
 
-let server: IDataObject
-const testDelayResponse = {
-  code: 0,
-  data: null,
-  message: `延迟接口测试: /testDelay`
-}
-const routes = [
-  {
-    url: '/testDelay',
-    method: 'get',
-    handler: async (ctx: any, next: any) => {
-      await delayer(1000)
-      await next()
+describe('abortControllerCancel.test', () => {
+  let server: Server
 
-      ctx.body = testDelayResponse
+  const routes: MethodOption[] = [
+    {
+      url: '/testDelay',
+      method: 'get',
+      handler: async (ctx, next) => {
+        await delayer(1000)
+        await next()
+
+        ctx.body = {
+          code: 0,
+          data: null,
+          message: `延迟接口测试: /testDelay`
+        }
+      }
     }
-  }
-]
-beforeAll(async () => {
-  server = await createTestServer({ routes })
-})
-afterAll(() => {
-  server.close()
-})
+  ]
 
-const prefix = (api: string) => `${server.url}${api}`
-
-test('Did manual request cancellation with AbortController succeed?', async () => {
-  const controller = new AbortController()
-  setTimeout(() => {
-    controller.abort()
-  }, 800)
-  let response = await veloxa(prefix('/testDelay'), {
-    controller,
-    errorHandler(error) {
-      const { ok = false, ...err } = error
-      return { ok, ...err }
-    }
+  beforeAll(async () => {
+    server = await createMockServer({ routes, autoWatch: true })
   })
 
-  expect(response.type).toEqual('AbortError')
+  afterAll(() => {
+    server.close?.()
+  })
+
+  const prefix = (api: string) => `${server.url}${api}`
+
+  it('Did manual request cancellation with AbortController succeed?', async () => {
+    const controller = new AbortController()
+    setTimeout(() => {
+      controller.abort()
+    }, 800)
+    const response = await veloxa(prefix('/testDelay'), {
+      controller,
+      errorHandler(error) {
+        const { ok = false, ...err } = error
+        return { ok, ...err }
+      }
+    })
+
+    expect(response.type).to.equal('AbortError')
+  })
 })

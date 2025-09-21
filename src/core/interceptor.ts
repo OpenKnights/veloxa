@@ -1,16 +1,16 @@
-import plugins, {
-  handlerParamsPlugin,
-  handlerDataPlugin,
-  initialConfigPlugin
-} from '../plugins'
-
-import { dealWithObject } from '../utils'
-import {
+import type {
   IDataObject,
   IVeloxaInit,
   TRequestInterceptor,
   TResponseInterceptor
-} from '../../types'
+} from './types'
+
+import plugins, {
+  handlerDataPlugin,
+  handlerParamsPlugin,
+  initialConfigPlugin
+} from './plugins'
+import { dealWithObject } from './utils'
 
 export const processConfig = (
   config: IVeloxaInit,

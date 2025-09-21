@@ -1,10 +1,10 @@
-import {
+import type {
   IDataObject,
   ITypeCheckes,
   TIsType,
   TMergeOptions,
   TTransGetParams
-} from '../../types'
+} from './types'
 
 const typeCheckers: ITypeCheckes = {
   string: (target) => typeof target === 'string',

@@ -1,6 +1,6 @@
-import { transformGetParams, isType } from '../utils'
-import { DATA_METHODS, PARAMS_METHODS } from '../global'
-import { IDataObject, IVeloxaInit } from '../../types'
+import type { IDataObject, IVeloxaInit } from './types'
+import { DATA_METHODS, PARAMS_METHODS } from './constants'
+import { isType, transformGetParams } from './utils'
 
 // Request Plugins
 export function handlerParamsPlugin(config: IVeloxaInit) {

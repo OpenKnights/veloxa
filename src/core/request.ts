@@ -1,7 +1,7 @@
-import veloxa from './veloxa'
-import { mergeRequestOptions } from './utils'
+import type { IDataObject, IVeloxaInit, TVeloxaInput } from './types'
 import { processConfig, processResponse } from './interceptor'
-import { IDataObject, IVeloxaInit, TVeloxaInput } from '../types'
+import { mergeRequestOptions } from './utils'
+import veloxa from './veloxa'
 
 /** Fetch API request class implemented based on Veloxa */
 class VeloxaRequest {
@@ -24,22 +24,21 @@ class VeloxaRequest {
    * @return {Promise<any>}
    */
   request(url: TVeloxaInput, config: IVeloxaInit): Promise<any> {
-    // eslint-disable-next-line
-    let { interceptors, errorHandler, ...options } = this.config
+    const { interceptors, errorHandler, ...options } = this.config
 
     // Merge configurations
-    let mergeOptions = mergeRequestOptions(options, { ...config, url })
+    const mergeOptions = mergeRequestOptions(options, { ...config, url })
     const { input } = mergeOptions
     let { init } = mergeOptions
 
     // Interception handling for a single request
     if (interceptors?.requestInterceptor) {
-      let configs = { ...init, url: input }
+      const configs = { ...init, url: input }
       init = processConfig(configs, interceptors.requestInterceptor) || configs
     }
 
     // Return Promise
-    let { url: veloxaInput, ...veloxaInit } = init
+    const { url: veloxaInput, ...veloxaInit } = init
     return new Promise((resolve, reject) => {
       veloxa(veloxaInput || input, veloxaInit)
         .then((res) => {

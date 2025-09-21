@@ -1,14 +1,15 @@
+import type { IDataObject } from '../types'
 import { createTestServer } from 'devix-server'
 import { veloxa } from '../src/index'
-import { IDataObject } from '../types'
 
-async function delayer(time = 2000) {
+function delayer(time = 2000) {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({})
     }, time)
   })
 }
+
 const testDelayResponse = {
   code: 0,
   data: null,
@@ -39,7 +40,7 @@ const prefix = (api: string) => `${server.url}${api}`
 
 test('Will request auto-cancel on timeout?', async () => {
   // receive response before timeout
-  let response = await veloxa(prefix('/testDelay'), {
+  const response = await veloxa(prefix('/testDelay'), {
     timeout: 800,
     errorHandler(error) {
       const { ok = false, ...err } = error
@@ -52,7 +53,7 @@ test('Will request auto-cancel on timeout?', async () => {
 
 test('Will timeout be cancelled if request succeeds early?', async () => {
   // receive response before timeout
-  let response = await veloxa(prefix('/testDelay'), {
+  const response = await veloxa(prefix('/testDelay'), {
     timeout: 1200,
     autojson: true,
     errorHandler(error) {
