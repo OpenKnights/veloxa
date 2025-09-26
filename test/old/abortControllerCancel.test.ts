@@ -1,8 +1,8 @@
-import type { MethodOption, Server } from 'mock-server'
-import { createMockServer } from 'mock-server'
+import type { MethodOption, Server } from 'create-mock-server'
+import { createMockServer } from 'create-mock-server'
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { veloxa } from '../src'
+import { veloxa } from '../../src'
 
 function delayer(time = 2000) {
   return new Promise((resolve) => {

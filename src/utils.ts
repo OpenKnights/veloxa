@@ -1,6 +1,15 @@
-import type { ResponseType, VeloxaContext, VeloxaHook } from './types'
+import type {
+  ResolvedVeloxaOptions,
+  ResponseType,
+  VeloxaContext,
+  VeloxaHook,
+  VeloxaOptions,
+  VeloxaRequest
+} from './types'
 
 import { PAYLOAD_METHODS, TEXT_TYPES } from './constants'
+
+export { createDefu as createMerge, defu as merge } from 'defu'
 
 export function isPayloadMethod(method = 'GET') {
   return PAYLOAD_METHODS.has(method.toUpperCase())
@@ -62,17 +71,44 @@ export function detectResponseType(_contentType = ''): ResponseType {
   return 'blob'
 }
 
+export function resolveVeloxaOptions<
+  R extends ResponseType = ResponseType,
+  T = any
+>(
+  request: VeloxaRequest,
+  input: VeloxaOptions<R, T> | undefined,
+  Headers: typeof globalThis.Headers
+): ResolvedVeloxaOptions<R, T> {
+  // Gen headers
+  const headers = genHeaders(
+    input?.headers ?? (request as Request)?.headers,
+    Headers
+  )
+
+  return {
+    ...input,
+    headers
+  }
+}
+
+function genHeaders(
+  input: HeadersInit | undefined,
+  Headers: typeof globalThis.Headers
+): Headers {
+  return new Headers(input)
+}
+
 export async function callHooks<C extends VeloxaContext = VeloxaContext>(
   context: C,
   hooks: VeloxaHook<C> | VeloxaHook<C>[] | undefined
 ): Promise<void> {
-  if (hooks) {
-    if (Array.isArray(hooks)) {
-      for (const hook of hooks) {
-        await hook(context)
-      }
-    } else {
-      await hooks(context)
+  if (!hooks) return
+
+  if (Array.isArray(hooks)) {
+    for (const hook of hooks) {
+      await hook(context)
     }
+  } else {
+    await hooks(context)
   }
 }

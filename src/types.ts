@@ -1,72 +1,16 @@
-// utils types
-export interface ITypeCheckes {
-  [key: string]: (target: any) => boolean
-}
-export type TIsType = (type: string, target: any) => boolean
-
-export type TTransGetParams = (params: IDataObject) => string
-
-export type TMergeOptions = (
-  options: IVeloxaInit,
-  options2Merge: IVeloxaInit
-) => IFetchOptions
-
-// veloxa types
-export type TVeloxaInput = RequestInfo | URL
-export interface IVeloxaInit extends RequestInit {
-  timeout?: number
-  autojson?: boolean
-  interceptors?: IInterceptors
-  controller?: AbortController
-  url?: TVeloxaInput
-  baseURL?: TVeloxaInput
-  data?: any
-  params?: any
-  headers?: HeadersInit & IDataObject
-  errorHandler?: (error: IDataObject | any) => any
-}
-
-export interface IFetchOptions {
-  input: TVeloxaInput
-  init: IVeloxaInit
-}
-
-// interceptor types
-export interface IInterceptors {
-  requestInterceptor?: TRequestInterceptor
-  responseInterceptor?: TResponseInterceptor
-}
-export type TRequestInterceptor = (config: IVeloxaInit) => IVeloxaInit | void
-export type TResponseInterceptor = (response: Response) => Response | void
-
-// other types
-export interface IDataObject {
-  [key: string]: any
-}
-
-// ============================================================================
-// ================================ New Code ==================================
-// ============================================================================
-
 // --------------------------
-// $fetch API
+// Veloxa API
 // --------------------------
 
-export interface $Fetch {
-  <T = any, R extends ResponseType = 'json'>(
-    request: VeloxaRequest,
-    options?: VeloxaOptions<R>
-  ): Promise<MappedResponseType<R, T>>
-  raw: <T = any, R extends ResponseType = 'json'>(
-    request: VeloxaRequest,
-    options?: VeloxaOptions<R>
-  ) => Promise<VeloxaResponse<MappedResponseType<R, T>>>
-  native: Fetch
-  create: (
-    defaults: VeloxaOptions,
-    globalOptions?: CreateVeloxaOptions
-  ) => $Fetch
-}
+export type Veloxa = <T = any, R extends ResponseType = 'json'>(
+  request: VeloxaRequest,
+  options?: VeloxaOptions<R>
+) => Promise<MappedResponseType<R, T>>
+
+export type VeloxaRaw = <T = any, R extends ResponseType = 'json'>(
+  request: VeloxaRequest,
+  options?: VeloxaOptions<R>
+) => Promise<VeloxaResponse<MappedResponseType<R, T>>>
 
 // --------------------------
 // Options
@@ -81,6 +25,11 @@ export interface VeloxaOptions<R extends ResponseType = ResponseType, T = any>
 
   ignoreResponseError?: boolean
 
+  /**
+   * @deprecated use query instead.
+   */
+  params?: Record<string, any>
+
   query?: Record<string, any>
 
   parseResponse?: (responseText: string) => any
@@ -88,11 +37,11 @@ export interface VeloxaOptions<R extends ResponseType = ResponseType, T = any>
   responseType?: R
 
   /**
-   * Only supported in Node.js >= 18 using undici
-   *
-   * @see https://undici.nodejs.org/#/docs/api/Dispatcher
+   * @experimental Set to "half" to enable duplex streaming.
+   * Will be automatically set to "half" when using a ReadableStream as body.
+   * @see https://fetch.spec.whatwg.org/#enumdef-requestduplex
    */
-  // dispatcher?: InstanceType<typeof import('undici').Dispatcher>
+  duplex?: 'half' | undefined
 
   /**
    * Only supported older Node.js versions using node-fetch-native polyfill.
@@ -117,18 +66,6 @@ export interface ResolvedVeloxaOptions<
 > extends VeloxaOptions<R, T> {
   headers: Headers
 }
-
-export interface CreateVeloxaOptions {
-  defaults?: VeloxaOptions
-  fetch?: Fetch
-  Headers?: typeof Headers
-  AbortController?: typeof AbortController
-}
-
-export type GlobalOptions = Pick<
-  VeloxaOptions,
-  'timeout' | 'retry' | 'retryDelay'
->
 
 // --------------------------
 // Hooks and Context
@@ -181,6 +118,21 @@ export type MappedResponseType<
 
 export interface VeloxaResponse<T> extends Response {
   _data?: T
+}
+
+// --------------------------
+// Error
+// --------------------------
+
+export interface IVeloxaError<T = any> extends Error {
+  request?: VeloxaRequest
+  options?: VeloxaOptions
+  response?: VeloxaResponse<T>
+  data?: T
+  status?: number
+  statusText?: string
+  statusCode?: number
+  statusMessage?: string
 }
 
 // --------------------------

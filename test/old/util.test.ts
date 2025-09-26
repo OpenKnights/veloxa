@@ -1,4 +1,4 @@
-import { mergeRequestOptions, transformGetParams } from '../src/utils'
+import { mergeRequestOptions, transformGetParams } from '../../src/utils'
 
 test('Was GEI request parameter processed?', () => {
   let getUrl = 'http://www.test.com'

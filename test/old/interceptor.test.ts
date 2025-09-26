@@ -1,6 +1,6 @@
 import type { IDataObject } from '../types'
 import { createTestServer } from 'mock-server'
-import { createVeloxa, veloxa } from '../src'
+import { createVeloxa, veloxa } from '../../src'
 
 // other utils
 function getQueryArray(keyName: string, query: IDataObject) {

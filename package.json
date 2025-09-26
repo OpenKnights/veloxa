@@ -41,6 +41,7 @@
     "release": "bumpp && pnpm publish"
   },
   "dependencies": {
+    "defu": "^6.1.4",
     "destr": "^2.0.5",
     "devix": "^1.0.4",
     "ufo": "^1.6.1"

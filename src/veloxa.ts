@@ -1,33 +1,41 @@
-import type { VeloxaContext, VeloxaRequest, VeloxaResponse } from './types'
+import type {
+  ResponseType,
+  Veloxa,
+  VeloxaContext,
+  VeloxaOptions,
+  VeloxaRaw,
+  VeloxaRequest,
+  VeloxaResponse
+} from './types'
 
-import destr from 'destr'
-import { withBase, withQuery } from 'ufo'
-import { NULL_BODY_RESPONSES } from './constants'
+import { RETRY_STATUS_CODES } from './constants'
 import {
   callHooks,
-  detectResponseType,
-  isJSONSerializable,
-  isPayloadMethod
+  isPayloadMethod,
+  merge,
+  resolveVeloxaOptions
 } from './utils'
+import { createVeloxaError } from './error'
+import {
+  methodToUpperCase,
+  processRequestUrl,
+  serializeBodyAndHeaders,
+  serializeResponseBody
+} from './handlers'
 
-async function veloxa(request: VeloxaRequest, options: any = {}) {
+export const veloxaRaw: VeloxaRaw = async function veloxaRaw<
+  T = any,
+  R extends ResponseType = 'json'
+>(request: VeloxaRequest, options: VeloxaOptions<R> = {}) {
   const context: VeloxaContext = {
+    options: resolveVeloxaOptions<R, T>(request, options, Headers),
     request,
-    options,
-    // options: resolveFetchOptions<R, T>(
-    //   _request,
-    //   _options,
-    //   globalOptions.defaults as unknown as FetchOptions<R, T>,
-    //   Headers
-    // ),
     response: undefined,
     error: undefined
   }
 
   // 请求类型大写转换
-  if (context.options.method) {
-    context.options.method = context.options.method.toUpperCase()
-  }
+  methodToUpperCase(context)
 
   // 请求前拦截
   if (context.options.onRequest) {
@@ -35,45 +43,10 @@ async function veloxa(request: VeloxaRequest, options: any = {}) {
   }
 
   // 请求地址处理
-  if (typeof context.request === 'string') {
-    if (context.options.baseURL) {
-      context.request = withBase(context.request, context.options.baseURL)
-    }
+  processRequestUrl(context)
 
-    if (context.options.query) {
-      context.request = withQuery(context.request, context.options.query)
-    }
-
-    if (Reflect.get(context.options, 'query')) {
-      Reflect.deleteProperty(context.options, 'query')
-    }
-  }
-
-  if (
-    isPayloadMethod(context.options.method) &&
-    isJSONSerializable(context.options.body)
-  ) {
-    const contentType = context.options.headers.get('content-type')
-
-    // 当body不是字符串时, 自动将其转换成JSON字符串
-    if (typeof context.options.body !== 'string') {
-      context.options.body =
-        contentType === 'application/x-www-form-urlencoded'
-          ? new URLSearchParams(
-              context.options.body as Record<string, any>
-            ).toString()
-          : JSON.stringify(context.options.body)
-    }
-
-    // 设置 Content-Type 和 Accept 报头的默认值为 application/json
-    context.options.headers = new Headers(context.options.headers || {})
-    if (!contentType) {
-      context.options.headers.set('content-type', 'application/json')
-    }
-    if (!context.options.headers.has('accept')) {
-      context.options.headers.set('accept', 'application/json')
-    }
-  }
+  // 处理body和请求头
+  serializeBodyAndHeaders(context)
 
   // 设置请求超时
   let abortTimeout: NodeJS.Timeout | undefined
@@ -89,8 +62,6 @@ async function veloxa(request: VeloxaRequest, options: any = {}) {
     }, context.options.timeout)
     context.options.signal = controller.signal
   }
-
-  const onError: any = ''
 
   try {
     context.response = await fetch(
@@ -114,33 +85,7 @@ async function veloxa(request: VeloxaRequest, options: any = {}) {
   }
 
   // 序列化请求响应值
-  const hasBody =
-    (context.response.body || (context.response as any)._bodyInit) &&
-    !NULL_BODY_RESPONSES.has(context.response.status) &&
-    context.options.method !== 'HEAD'
-  if (hasBody) {
-    const responseType =
-      (context.options.parseResponse ? 'json' : context.options.responseType) ||
-      detectResponseType(context.response.headers.get('content-type') || '')
-
-    // We override the `.json()` method to parse the body more securely with `destr`
-    switch (responseType) {
-      case 'json': {
-        const data = await context.response.text()
-        const parseFunction = context.options.parseResponse || destr
-        context.response._data = parseFunction(data)
-        break
-      }
-      case 'stream': {
-        context.response._data =
-          context.response.body || (context.response as any)._bodyInit // (see refs above)
-        break
-      }
-      default: {
-        context.response._data = await context.response[responseType]()
-      }
-    }
-  }
+  serializeResponseBody(context)
 
   // 响应拦截
   if (context.options.onResponse) {
@@ -168,4 +113,62 @@ async function veloxa(request: VeloxaRequest, options: any = {}) {
   return context.response
 }
 
-export default veloxa
+export const createVeloxa = (defaults: VeloxaOptions = {}): Veloxa => {
+  const veloxa = async function veloxa(request, options) {
+    const mergeOptions = merge({}, options, defaults)
+    const r = await veloxaRaw(request, mergeOptions)
+    return r._data
+  } as Veloxa
+
+  return veloxa
+}
+
+async function onError(context: VeloxaContext): Promise<VeloxaResponse<any>> {
+  // Is Abort
+  // If it is an active abort, it will not retry automatically.
+  // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
+  const isAbort =
+    (context.error &&
+      context.error.name === 'AbortError' &&
+      !context.options.timeout) ||
+    false
+  // Retry
+  if (context.options.retry !== false && !isAbort) {
+    let retries
+    if (typeof context.options.retry === 'number') {
+      retries = context.options.retry
+    } else {
+      retries = isPayloadMethod(context.options.method) ? 0 : 1
+    }
+
+    const responseCode = (context.response && context.response.status) || 500
+    if (
+      retries > 0 &&
+      (Array.isArray(context.options.retryStatusCodes)
+        ? context.options.retryStatusCodes.includes(responseCode)
+        : RETRY_STATUS_CODES.has(responseCode))
+    ) {
+      const retryDelay =
+        typeof context.options.retryDelay === 'function'
+          ? context.options.retryDelay(context)
+          : context.options.retryDelay || 0
+      if (retryDelay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, retryDelay))
+      }
+      // Timeout
+      return veloxaRaw(context.request, {
+        ...context.options,
+        retry: retries - 1
+      })
+    }
+  }
+
+  // Throw normalized error
+  const error = createVeloxaError(context)
+
+  // Only available on V8 based runtimes (https://v8.dev/docs/stack-trace-api)
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(error, veloxaRaw)
+  }
+  throw error
+}

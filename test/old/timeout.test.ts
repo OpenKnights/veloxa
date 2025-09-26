@@ -1,6 +1,6 @@
 import type { IDataObject } from '../types'
 import { createTestServer } from 'devix-server'
-import { veloxa } from '../src/index'
+import { veloxa } from '../../src/index'
 
 function delayer(time = 2000) {
   return new Promise((resolve) => {
