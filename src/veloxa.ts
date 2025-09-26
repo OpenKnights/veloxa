@@ -8,20 +8,18 @@ import type {
   VeloxaResponse
 } from './types'
 
-import { RETRY_STATUS_CODES } from './constants'
+import destr from 'destr'
+import { withBase, withQuery } from 'ufo'
+import { NULL_BODY_RESPONSES, RETRY_STATUS_CODES } from './constants'
+import { createVeloxaError } from './error'
 import {
   callHooks,
+  detectResponseType,
+  isJSONSerializable,
   isPayloadMethod,
   merge,
   resolveVeloxaOptions
 } from './utils'
-import { createVeloxaError } from './error'
-import {
-  methodToUpperCase,
-  processRequestUrl,
-  serializeBodyAndHeaders,
-  serializeResponseBody
-} from './handlers'
 
 export const veloxaRaw: VeloxaRaw = async function veloxaRaw<
   T = any,
@@ -35,7 +33,11 @@ export const veloxaRaw: VeloxaRaw = async function veloxaRaw<
   }
 
   // 请求类型大写转换
-  methodToUpperCase(context)
+  if (context.options.method) {
+    const UpperMethod = context.options.method.toUpperCase()
+
+    context.options.method = UpperMethod
+  }
 
   // 请求前拦截
   if (context.options.onRequest) {
@@ -43,10 +45,46 @@ export const veloxaRaw: VeloxaRaw = async function veloxaRaw<
   }
 
   // 请求地址处理
-  processRequestUrl(context)
+  if (typeof context.request === 'string') {
+    if (context.options.baseURL) {
+      context.request = withBase(context.request, context.options.baseURL)
+    }
+
+    if (context.options.query) {
+      context.request = withQuery(context.request, context.options.query)
+    }
+
+    if (Reflect.get(context.options, 'query')) {
+      Reflect.deleteProperty(context.options, 'query')
+    }
+  }
 
   // 处理body和请求头
-  serializeBodyAndHeaders(context)
+  if (
+    isPayloadMethod(context.options.method) &&
+    isJSONSerializable(context.options.body)
+  ) {
+    const contentType = context.options.headers.get('content-type')
+
+    // 当body不是字符串时, 自动将其转换成JSON字符串
+    if (typeof context.options.body !== 'string') {
+      context.options.body =
+        contentType === 'application/x-www-form-urlencoded'
+          ? new URLSearchParams(
+              context.options.body as Record<string, any>
+            ).toString()
+          : JSON.stringify(context.options.body)
+    }
+
+    // 设置 Content-Type 和 Accept 报头的默认值为 application/json
+    context.options.headers = new Headers(context.options.headers || {})
+    if (!contentType) {
+      context.options.headers.set('content-type', 'application/json')
+    }
+    if (!context.options.headers.has('accept')) {
+      context.options.headers.set('accept', 'application/json')
+    }
+  }
 
   // 设置请求超时
   let abortTimeout: NodeJS.Timeout | undefined
@@ -85,7 +123,33 @@ export const veloxaRaw: VeloxaRaw = async function veloxaRaw<
   }
 
   // 序列化请求响应值
-  serializeResponseBody(context)
+  const hasBody =
+    (context.response.body || (context.response as any)._bodyInit) &&
+    !NULL_BODY_RESPONSES.has(context.response.status) &&
+    context.options.method !== 'HEAD'
+  if (hasBody) {
+    const responseType =
+      (context.options.parseResponse ? 'json' : context.options.responseType) ||
+      detectResponseType(context.response.headers.get('content-type') || '')
+
+    // We override the `.json()` method to parse the body more securely with `destr`
+    switch (responseType) {
+      case 'json': {
+        const data = await context.response.text()
+        const parseFunction = context.options.parseResponse || destr
+        context.response._data = parseFunction(data)
+        break
+      }
+      case 'stream': {
+        context.response._data =
+          context.response.body || (context.response as any)._bodyInit // (see refs above)
+        break
+      }
+      default: {
+        context.response._data = await context.response[responseType]()
+      }
+    }
+  }
 
   // 响应拦截
   if (context.options.onResponse) {

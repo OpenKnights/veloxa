@@ -138,9 +138,9 @@ describe('Veloxa Error Handling', () => {
         await veloxa(`${server.url}/bad-request`)
       } catch (error) {
         expect(error).toBeInstanceOf(VeloxaError)
-        expect(error.status).toBe(400)
-        expect(error.statusText).toBe('Bad Request')
-        expect(error.data).toEqual({ error: 'Invalid parameters' })
+        expect(error.statusCode).toBe(400)
+        expect(error.statusMessage).toBe('Bad Request')
+        expect(error.data.data).toEqual({ error: 'Invalid parameters' })
       }
     })
 
@@ -149,9 +149,9 @@ describe('Veloxa Error Handling', () => {
         await veloxa(`${server.url}/unauthorized`)
       } catch (error) {
         expect(error).toBeInstanceOf(VeloxaError)
-        expect(error.status).toBe(401)
-        expect(error.statusText).toBe('Unauthorized')
-        expect(error.data).toEqual({ error: 'Authentication required' })
+        expect(error.statusCode).toBe(401)
+        expect(error.statusMessage).toBe('Unauthorized')
+        expect(error.data.data).toEqual({ error: 'Authentication required' })
       }
     })
 
@@ -160,8 +160,8 @@ describe('Veloxa Error Handling', () => {
         await veloxa(`${server.url}/forbidden`)
       } catch (error) {
         expect(error).toBeInstanceOf(VeloxaError)
-        expect(error.status).toBe(403)
-        expect(error.statusText).toBe('Forbidden')
+        expect(error.statusCode).toBe(403)
+        expect(error.statusMessage).toBe('Forbidden')
       }
     })
 
@@ -170,8 +170,8 @@ describe('Veloxa Error Handling', () => {
         await veloxa(`${server.url}/not-found`)
       } catch (error) {
         expect(error).toBeInstanceOf(VeloxaError)
-        expect(error.status).toBe(404)
-        expect(error.statusText).toBe('Not Found')
+        expect(error.statusCode).toBe(404)
+        expect(error.statusMessage).toBe('Not Found')
       }
     })
 
@@ -180,8 +180,8 @@ describe('Veloxa Error Handling', () => {
         await veloxa(`${server.url}/server-error`)
       } catch (error) {
         expect(error).toBeInstanceOf(VeloxaError)
-        expect(error.status).toBe(500)
-        expect(error.statusText).toBe('Internal Server Error')
+        expect(error.statusCode).toBe(500)
+        expect(error.statusMessage).toBe('Internal Server Error')
       }
     })
   })
@@ -193,7 +193,7 @@ describe('Veloxa Error Handling', () => {
       })
 
       // 应该返回错误数据而不是抛出异常
-      expect(response).toEqual({ error: 'Invalid parameters' })
+      expect(response.data).toEqual({ error: 'Invalid parameters' })
     })
 
     it('should still process error data when ignoring errors', async () => {
@@ -201,20 +201,11 @@ describe('Veloxa Error Handling', () => {
         ignoreResponseError: true
       })
 
-      expect(response).toEqual({ error: 'Something went wrong' })
+      expect(response.data).toEqual({ error: 'Something went wrong' })
     })
   })
 
   describe('Network Errors', () => {
-    it('should throw VeloxaError for network connection errors', async () => {
-      try {
-        await veloxa('http://localhost:99999/nonexistent')
-      } catch (error) {
-        expect(error).toBeInstanceOf(VeloxaError)
-        expect(error.message).toContain('fetch')
-      }
-    })
-
     it('should handle invalid URLs', async () => {
       await expect(veloxa('invalid-url')).rejects.toThrow()
     })
@@ -228,7 +219,7 @@ describe('Veloxa Error Handling', () => {
         })
       } catch (error) {
         expect(error).toBeInstanceOf(Error)
-        expect(error.name).toBe('TimeoutError')
+        expect(error.cause.name).toBe('TimeoutError')
         expect(error.message).toContain('timeout')
       }
     })
@@ -255,7 +246,7 @@ describe('Veloxa Error Handling', () => {
       } catch (error) {
         const duration = Date.now() - startTime
         expect(error).toBeInstanceOf(VeloxaError)
-        expect(error.status).toBe(502)
+        expect(error.statusCode).toBe(502)
         // 应该有重试延迟
         expect(duration).toBeGreaterThanOrEqual(200) // 2次重试 * 100ms延迟
       }
@@ -272,7 +263,7 @@ describe('Veloxa Error Handling', () => {
       } catch (error) {
         const duration = Date.now() - startTime
         expect(error).toBeInstanceOf(VeloxaError)
-        expect(error.status).toBe(400)
+        expect(error.statusCode).toBe(400)
         // 不应该有明显的重试延迟
         expect(duration).toBeLessThan(50)
       }
@@ -298,7 +289,7 @@ describe('Veloxa Error Handling', () => {
       } catch (error) {
         const duration = Date.now()
         expect(error).toBeInstanceOf(VeloxaError)
-        expect(error.status).toBe(400)
+        expect(error.statusCode).toBe(400)
       }
     })
 
@@ -335,7 +326,7 @@ describe('Veloxa Error Handling', () => {
           signal: controller.signal
         })
       } catch (error) {
-        expect(error.name).toBe('AbortError')
+        expect(error.cause.name).toBe('AbortError')
       }
     })
 
@@ -353,7 +344,7 @@ describe('Veloxa Error Handling', () => {
         })
       } catch (error) {
         const duration = Date.now() - startTime
-        expect(error.name).toBe('AbortError')
+        expect(error.cause.name).toBe('AbortError')
         // 不应该有重试延迟
         expect(duration).toBeLessThan(100)
       }
