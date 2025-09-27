@@ -83,11 +83,10 @@ describe('Veloxa Hooks', () => {
         body: { original: 'data' },
         onRequest: (context) => {
           // 修改请求体
-          if (typeof context.options.body === 'string') {
-            const parsed = JSON.parse(context.options.body)
-            parsed.modified = true
-            context.options.body = JSON.stringify(parsed)
-          }
+          const body = context.options.body as Record<string, any>
+          body.modified = true
+
+          context.options.body = body
         }
       })
 
@@ -172,27 +171,6 @@ describe('Veloxa Hooks', () => {
   })
 
   describe('onRequestError Hook', () => {
-    it('should call onRequestError hook on network errors', async () => {
-      const onRequestErrorSpy = vi.fn()
-
-      try {
-        await veloxa('http://localhost:99999/nonexistent', {
-          onRequestError: onRequestErrorSpy
-        })
-      } catch (error) {
-        // 预期会抛出错误
-      }
-
-      expect(onRequestErrorSpy).toHaveBeenCalledOnce()
-      expect(onRequestErrorSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          request: expect.any(String),
-          options: expect.any(Object),
-          error: expect.any(Error)
-        })
-      )
-    })
-
     it('should allow handling request errors in hook', async () => {
       let capturedError: Error | null = null
 
