@@ -1,243 +1,399 @@
 # Veloxa
 
-> Veloxa 是一个基于 Fetch API 的快速、原生的请求库。（ 简体中文 | [English](README.md) ）
+> Veloxa 是一个基于 Fetch API 的快速、原生请求库。
 
-## 安装
+[![npm version](https://img.shields.io/npm/v/veloxa.svg)](https://www.npmjs.com/package/veloxa)
+[![npm downloads](https://img.shields.io/npm/dm/veloxa.svg)](https://www.npmjs.com/package/veloxa)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/veloxa.svg)](https://bundlephobia.com/package/veloxa)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-请确保您在 Node.js 环境下使用 npm 或其他包管理器安装此库。
+[English](README.md) | [简体中文](README_zh.md)
 
-```shell
-npm install --save veloxa
+## ✨ 特性
+
+- 🚀 **快速轻量** - 基于原生 Fetch API 构建，开销最小
+- 🔄 **智能重试** - 可配置的重试机制和指数退避算法
+- 🎯 **TypeScript 优先** - 完整的 TypeScript 支持和优秀的类型推断
+- 🪝 **钩子系统** - 强大的请求/响应拦截器
+- ⏱️ **超时支持** - 内置请求超时处理
+- 🎨 **自动序列化** - 自动处理 JSON/FormData/URLSearchParams
+- 🌐 **通用性** - 支持浏览器、Node.js 和边缘运行时
+- 🛡️ **错误处理** - 全面的错误处理和详细的上下文信息
+
+## 📦 安装
+
+```bash
+# npm
+npm install veloxa
+
+# yarn
+yarn add veloxa
+
+# pnpm
+pnpm add veloxa
 ```
 
-然后，利用现代的模块捆绑工具，如 Vite 或 Webpack，以模块化的语法引入此库。
+## 🚀 快速开始
 
-```javascript
-// 使用 ES Module
+```typescript
 import { veloxa } from 'veloxa'
-```
 
-```javascript
-// 使用 CommonJS
-const { veloxa } = require('veloxa')
-```
+// 简单的 GET 请求
+const data = await veloxa('https://api.example.com/users')
 
-## 使用
+// 带 JSON 体的 POST 请求
+const user = await veloxa('https://api.example.com/users', {
+  method: 'POST',
+  body: {
+    name: 'John Doe',
+    email: 'john@example.com'
+  }
+})
 
-```javascript
-import request, { createVeloxa, veloxa } from 'veloxa'
-
-const requestParams = {
-  name: 'King-3',
-  age: 18,
-  ids: [36, 20, 3]
+// 使用 TypeScript
+interface User {
+  id: number
+  name: string
+  email: string
 }
 
-// 使用 request
-const res1 = await request.get(
-  'http://localhost:8080/testDelay',
-  { name: 'king-3' },
-  {
-    timeout: 1200,
-    errorHandler(error) {
-      const { ok = false, ...err } = error
-      return { ok, ...err }
-    }
-  }
-)
-console.log(`res1:`, res1)
-
-// 使用 veloxa
-const controller = new AbortController()
-setTimeout(() => {
-  controller.abort()
-}, 800)
-const res2 = await veloxa('http://localhost:8080/testGet', {
-  params: requestParams,
-  controller,
-  interceptors: {
-    requestInterceptor: (config) => {
-      config.params.name = 'king3_get'
-      return config
-    }
-  }
-})
-console.log(`res2:`, res2)
-
-// 使用 createVeloxa
-const veloxaReqeust = createVeloxa({
-  baseURL: 'http://localhost:8080',
-  timeout: 100000,
-  // autojson default value true
-  autojson: false,
-  interceptors: {
-    requestInterceptor(config) {
-      config.headers.Authorization = 'Bearer kc3jn313d0193ksd1=120812d'
-
-      return config
-    },
-    responseInterceptor(response) {
-      const result = response.ok ? response.json() : response
-
-      return response
-    }
-  }
-})
-const res3 = await veloxaReqeust.post('/testPost', requestParams, {
-  interceptors: {
-    responseInterceptor(response) {
-      response.json = () =>
-        response
-          .clone()
-          .json()
-          .then((res) => {
-            res.age = 20
-            return res
-          })
-
-      return response
-    }
-  }
-})
-console.log(`res3:`, res3)
-
-// 拦截器执行顺序:
-// 1. InstanceInterceptors requestInterceptor
-// 2. VeloxaInterceptors requestInterceptor
-// 3. VeloxaInterceptors responseInterceptor
-// 4. InstanceInterceptors responseInterceptor
+const user = await veloxa<User>('https://api.example.com/users/1')
 ```
 
-## 方法
+## 📖 API 参考
 
-### createVeloxa
-
-createVeloxa 函数根据所提供的配置参数，返回一个封装 Veloxa 函数特性的 request 类实例。
-
-`function createVeloxa(config?: IVeloxaInit): VeloxaRequest`
+### 基本用法
 
 ```typescript
-const request = createVeloxa({
-  baseURL: 'http://localhost:3060',
-  timeout: 100000,
-  autojson: false
-})
-
-veloxaRequest.request('/test/request', { name: 'request' }, { timeout: 1000 })
-veloxaRequest.get('/test/get', { name: 'get' }, { timeout: 1000 })
-veloxaRequest.post('/test/post', { name: 'post' }, { timeout: 1000 })
-veloxaRequest.delete('/test/delete', { name: 'delete' }, { timeout: 1000 })
-veloxaRequest.patch('/test/patch', { name: 'patch' }, { timeout: 1000 })
-veloxaRequest.put('/test/put', { name: 'put' }, { timeout: 1000 })
+veloxa(request, options)
 ```
 
-### veloxa
-
-基于 Fetch 原生 API 封装的请求函数，符合 Fetch 基本规范，支持拦截器、请求超时、错误处理等功能。
-
-`function veloxa(input: TVeloxaInput, init?: IVeloxaInit): Promise<any>`
+### 选项
 
 ```typescript
-const controller = new AbortController()
+interface VeloxaOptions {
+  // 标准 fetch 选项
+  method?: string
+  headers?: HeadersInit
+  body?: RequestInit['body'] | Record<string, any>
 
-setTimeout(() => {
-  controller.abort()
-}, 800)
-
-const response = await veloxa('http://localhost:3060/testDelay', {
-  controller,
-  autojson: false,
-  errorHandler(error) {
-    const { ok = false, ...err } = error
-    return { ok, ...err }
-  },
-  requestInterceptor(config) {
-    config.headers.Authorization = 'Bearer kc3jn313d0193ksd1=120812d'
-    return config
-  },
-  responseInterceptor(response) {
-    const result = response.ok ? response.json() : response
-    return response
-  }
-})
-```
-
-## 类型
-
-所有在 Veloxa 中定义的类型
-
-```typescript
-// veloxa 类型
-type TVeloxaInput = RequestInfo | URL
-interface IVeloxaInit extends RequestInit {
+  // Veloxa 特定选项
+  baseURL?: string
+  query?: Record<string, any>
   timeout?: number
-  autojson?: boolean
-  interceptors?: IInterceptors
-  controller?: AbortController
-  url?: TVeloxaInput
-  baseURL?: TVeloxaInput
-  data?: any
-  params?: any
-  headers?: HeadersInit & IDataObject
-  errorHandler?: (error: IDataObject | any) => any
-}
+  retry?: number | false
+  retryDelay?: number | ((context: VeloxaContext) => number)
+  retryStatusCodes?: number[]
+  responseType?: 'json' | 'text' | 'blob' | 'arrayBuffer' | 'stream'
+  parseResponse?: (responseText: string) => any
+  ignoreResponseError?: boolean
 
-// interceptor 类型
-interface IInterceptors {
-  requestInterceptor?: TRequestInterceptor
-  responseInterceptor?: TResponseInterceptor
-}
-type TRequestInterceptor = (config: IVeloxaInit) => IVeloxaInit | void
-type TResponseInterceptor = (response: Response) => Response | void
-
-// other 类型
-interface IDataObject {
-  [key: string]: any
-}
-
-// Fetch API
-declare class VeloxaRequest {
-  private config
-  constructor(config: IVeloxaInit)
-  request(url: TVeloxaInput, config: IVeloxaInit): Promise<any>
-  get(
-    url: TVeloxaInput,
-    params?: IDataObject,
-    config?: IVeloxaInit
-  ): Promise<any>
-  post(
-    url: TVeloxaInput,
-    data?: IDataObject,
-    config?: IVeloxaInit
-  ): Promise<any>
-  delete(
-    url: TVeloxaInput,
-    data?: IDataObject,
-    config?: IVeloxaInit
-  ): Promise<any>
-  patch(
-    url: TVeloxaInput,
-    params?: IDataObject,
-    config?: IVeloxaInit
-  ): Promise<any>
-  put(
-    url: TVeloxaInput,
-    params?: IDataObject,
-    config?: IVeloxaInit
-  ): Promise<any>
-}
-
-declare function createVeloxa(config?: IVeloxaInit): VeloxaRequest
-declare const veloxaRequestInstance: VeloxaRequest
-declare function veloxa(input: TVeloxaInput, init?: IVeloxaInit): Promise<any>
-
-// veloxaError
-declare class RequestError extends Error {
-  type: string
-  constructor(text: any, type?: string)
-}
-declare class ResponseError extends Error {
-  type: string
-  constructor(text: any, type?: string)
+  // 钩子
+  onRequest?: VeloxaHook | VeloxaHook[]
+  onRequestError?: VeloxaHook | VeloxaHook[]
+  onResponse?: VeloxaHook | VeloxaHook[]
+  onResponseError?: VeloxaHook | VeloxaHook[]
 }
 ```
+
+### 响应类型
+
+```typescript
+// 获取解析的 JSON 数据（默认）
+// 获取原始响应
+import { veloxaRaw } from 'veloxa'
+
+const data = await veloxa<User>('/api/users')
+const response = await veloxaRaw('/api/users')
+
+// 不同的响应类型
+const text = await veloxa('/api/text', { responseType: 'text' })
+const blob = await veloxa('/api/file', { responseType: 'blob' })
+const buffer = await veloxa('/api/binary', { responseType: 'arrayBuffer' })
+```
+
+## 🔧 配置
+
+### 基础 URL 和查询参数
+
+```typescript
+const api = createVeloxa({
+  baseURL: 'https://api.example.com',
+  headers: {
+    Authorization: 'Bearer token'
+  }
+})
+
+// GET https://api.example.com/users?page=1&limit=10
+const users = await api('/users', {
+  query: { page: 1, limit: 10 }
+})
+```
+
+### 超时
+
+```typescript
+// 5秒超时
+const data = await veloxa('/api/slow-endpoint', {
+  timeout: 5000
+})
+```
+
+### 重试配置
+
+```typescript
+// 最多重试 3 次，使用指数退避算法
+const data = await veloxa('/api/unreliable', {
+  retry: 3,
+  retryDelay: (context) => 2 ** (3 - context.options.retry!) * 1000,
+  retryStatusCodes: [408, 429, 500, 502, 503, 504]
+})
+
+// 禁用特定请求的重试
+const data = await veloxa('/api/endpoint', {
+  retry: false
+})
+```
+
+### 自定义响应解析器
+
+```typescript
+const data = await veloxa('/api/xml', {
+  responseType: 'text',
+  parseResponse: (text) => new DOMParser().parseFromString(text, 'text/xml')
+})
+```
+
+## 🪝 钩子系统
+
+### 请求钩子
+
+```typescript
+const api = createVeloxa({
+  onRequest({ request, options }) {
+    // 发送请求前修改请求
+    console.log('正在请求:', request)
+    options.headers.set('X-Request-ID', generateId())
+  },
+
+  onRequestError({ error }) {
+    // 处理请求错误
+    console.error('请求失败:', error)
+  }
+})
+```
+
+### 响应钩子
+
+```typescript
+const api = createVeloxa({
+  onResponse({ response }) {
+    // 处理成功响应
+    console.log('响应状态:', response.status)
+  },
+
+  onResponseError({ response, error }) {
+    // 处理响应错误 (4xx, 5xx)
+    console.error('响应错误:', response.status, error)
+  }
+})
+```
+
+### 多个钩子
+
+```typescript
+const api = createVeloxa({
+  onRequest: [
+    (context) => {
+      /* 第一个钩子 */
+    },
+    (context) => {
+      /* 第二个钩子 */
+    }
+  ]
+})
+```
+
+## 🛡️ 错误处理
+
+```typescript
+import { VeloxaError } from 'veloxa'
+
+try {
+  const data = await veloxa('/api/endpoint')
+} catch (error) {
+  if (error instanceof VeloxaError) {
+    console.log('状态码:', error.status)
+    console.log('状态文本:', error.statusText)
+    console.log('响应数据:', error.data)
+    console.log('请求:', error.request)
+    console.log('响应:', error.response)
+  }
+}
+```
+
+## 🌟 高级用法
+
+### FormData 和文件上传
+
+```typescript
+const formData = new FormData()
+formData.append('file', fileInput.files[0])
+formData.append('name', 'Document')
+
+const result = await veloxa('/api/upload', {
+  method: 'POST',
+  body: formData
+})
+```
+
+### URLSearchParams
+
+```typescript
+const result = await veloxa('/api/form', {
+  method: 'POST',
+  headers: {
+    'content-type': 'application/x-www-form-urlencoded'
+  },
+  body: {
+    username: 'john',
+    password: 'secret'
+  }
+})
+```
+
+### 流式响应
+
+```typescript
+const response = await veloxa('/api/stream', {
+  responseType: 'stream'
+})
+
+const reader = response.getReader()
+while (true) {
+  const { done, value } = await reader.read()
+  if (done) break
+  console.log(new TextDecoder().decode(value))
+}
+```
+
+### 创建自定义实例
+
+```typescript
+// 带默认配置的 API 客户端
+const apiClient = createVeloxa({
+  baseURL: 'https://api.example.com',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${getToken()}`
+  },
+  timeout: 10000,
+  retry: 2
+})
+
+// 认证客户端
+const authClient = createVeloxa({
+  baseURL: 'https://auth.example.com',
+  onRequest({ options }) {
+    // 添加认证头
+  }
+})
+```
+
+## 🔄 迁移指南
+
+### 从 Axios 迁移
+
+```typescript
+// Axios
+import axios from 'axios'
+
+// Veloxa
+import { veloxa } from 'veloxa'
+const response = await axios.get('/api/users')
+const data = response.data
+const data = await veloxa('/api/users')
+```
+
+### 从 Fetch 迁移
+
+```typescript
+// Fetch
+const response = await fetch('/api/users', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name: 'John' })
+})
+const data = await response.json()
+
+// Veloxa
+const data = await veloxa('/api/users', {
+  method: 'POST',
+  body: { name: 'John' }
+})
+```
+
+## 🎯 TypeScript 支持
+
+Veloxa 使用 TypeScript 编写，提供出色的类型安全：
+
+```typescript
+interface ApiResponse<T> {
+  data: T
+  message: string
+  status: number
+}
+
+interface User {
+  id: number
+  name: string
+  email: string
+}
+
+// 完全类型化的响应
+const response = await veloxa<ApiResponse<User>>('/api/users/1')
+// response.data 的类型为 User
+// response.message 的类型为 string
+// response.status 的类型为 number
+```
+
+## 🌐 浏览器支持
+
+Veloxa 适用于所有支持以下特性的现代浏览器和环境：
+
+- Fetch API
+- AbortController（用于超时）
+- Headers 构造函数
+
+对于旧浏览器，请考虑使用 polyfill：
+
+- [whatwg-fetch](https://github.com/github/fetch)
+- [abortcontroller-polyfill](https://github.com/mo/abortcontroller-polyfill)
+
+## 📊 包大小
+
+Veloxa 专为轻量化设计：
+
+- **压缩后**: ~8KB
+- **压缩 + Gzip**: ~3KB
+- **零依赖**（除了 Node.js 环境中的 polyfill）
+
+## 🤝 贡献
+
+我们欢迎贡献！详情请参见我们的[贡献指南](CONTRIBUTING.md)。
+
+## 📄 许可证
+
+[MIT 许可证](LICENSE) © Veloxa 贡献者
+
+## 🙏 致谢
+
+- v1.0 受 [ofetch](https://github.com/unjs/ofetch) 启发
+- 使用 TypeScript 和现代 Web 标准构建
+- 由原生 Fetch API 驱动
+
+---
+
+<p align="center">
+  <strong>由 Veloxa 团队用 ❤️ 制作</strong>
+</p>
