@@ -12,9 +12,9 @@
 ## ✨ Features
 
 - 🚀 **Fast & Lightweight** - Built on native Fetch API with minimal overhead
-- 🔄 **Smart Retries** - Configurable retry mechanism with exponential backoff
+- 🔄 **Smart Retry** - Configurable retry mechanism with exponential backoff
 - 🎯 **TypeScript First** - Full TypeScript support with excellent type inference
-- 🪝 **Hooks System** - Powerful request/response interceptors
+- 🪝 **Hook System** - Powerful request/response interceptors
 - ⏱️ **Timeout Support** - Built-in request timeout handling
 - 🎨 **Auto Serialization** - Automatic JSON/FormData/URLSearchParams handling
 - 🌐 **Universal** - Works in browsers, Node.js, and edge runtimes
@@ -50,7 +50,7 @@ const user = await veloxa('https://api.example.com/users', {
   }
 })
 
-// With TypeScript
+// Using TypeScript
 interface User {
   id: number
   name: string
@@ -164,7 +164,7 @@ const data = await veloxa('/api/xml', {
 })
 ```
 
-## 🪝 Hooks System
+## 🪝 Hook System
 
 ### Request Hooks
 
@@ -172,7 +172,7 @@ const data = await veloxa('/api/xml', {
 const api = createVeloxa({
   onRequest({ request, options }) {
     // Modify request before sending
-    console.log('Making request to:', request)
+    console.log('Requesting:', request)
     options.headers.set('X-Request-ID', generateId())
   },
 
@@ -188,7 +188,7 @@ const api = createVeloxa({
 ```typescript
 const api = createVeloxa({
   onResponse({ response }) {
-    // Handle successful responses
+    // Handle successful response
     console.log('Response status:', response.status)
   },
 
@@ -223,9 +223,9 @@ try {
   const data = await veloxa('/api/endpoint')
 } catch (error) {
   if (error instanceof VeloxaError) {
-    console.log('Status:', error.status)
-    console.log('Status Text:', error.statusText)
-    console.log('Response Data:', error.data)
+    console.log('Status code:', error.statusCode)
+    console.log('Status text:', error.statusText)
+    console.log('Response data:', error.data)
     console.log('Request:', error.request)
     console.log('Response:', error.response)
   }
@@ -234,7 +234,7 @@ try {
 
 ## 🌟 Advanced Usage
 
-### FormData and File Uploads
+### FormData and File Upload
 
 ```typescript
 const formData = new FormData()
@@ -262,7 +262,7 @@ const result = await veloxa('/api/form', {
 })
 ```
 
-### Streaming Responses
+### Streaming Response
 
 ```typescript
 const response = await veloxa('/api/stream', {
@@ -280,7 +280,7 @@ while (true) {
 ### Creating Custom Instances
 
 ```typescript
-// API client with defaults
+// API client with default configuration
 const apiClient = createVeloxa({
   baseURL: 'https://api.example.com',
   headers: {
@@ -295,27 +295,28 @@ const apiClient = createVeloxa({
 const authClient = createVeloxa({
   baseURL: 'https://auth.example.com',
   onRequest({ options }) {
-    // Add auth headers
+    // Add authentication headers
   }
 })
 ```
 
 ## 🔄 Migration Guide
 
-### From Axios
+### Migrating from Axios
 
 ```typescript
-// Axios
 import axios from 'axios'
-
-// Veloxa
 import { veloxa } from 'veloxa'
+
+// Axios
 const response = await axios.get('/api/users')
 const data = response.data
+
+// Veloxa
 const data = await veloxa('/api/users')
 ```
 
-### From Fetch
+### Migrating from Fetch
 
 ```typescript
 // Fetch
@@ -365,19 +366,6 @@ Veloxa works in all modern browsers and environments that support:
 - AbortController (for timeouts)
 - Headers constructor
 
-For older browsers, consider using polyfills:
-
-- [whatwg-fetch](https://github.com/github/fetch)
-- [abortcontroller-polyfill](https://github.com/mo/abortcontroller-polyfill)
-
-## 📊 Bundle Size
-
-Veloxa is designed to be lightweight:
-
-- **Minified**: ~8KB
-- **Minified + Gzipped**: ~3KB
-- **Zero dependencies** (except for polyfills in Node.js environments)
-
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
@@ -386,14 +374,14 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 [MIT License](LICENSE) © Veloxa Contributors
 
-## 🙏 Credits
+## 🙏 Acknowledgments
 
 - v1.0 inspired by [ofetch](https://github.com/unjs/ofetch)
 - Built with TypeScript and modern web standards
-- Powered by the native Fetch API
+- Powered by native Fetch API
 
 ---
 
 <p align="center">
-  <strong>Made with ❤️ by the Veloxa team</strong>
+  <strong>Made with ❤️ by the OpenKnights team</strong>
 </p>

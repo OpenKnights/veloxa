@@ -223,7 +223,7 @@ try {
   const data = await veloxa('/api/endpoint')
 } catch (error) {
   if (error instanceof VeloxaError) {
-    console.log('状态码:', error.status)
+    console.log('状态码:', error.statusCode)
     console.log('状态文本:', error.statusText)
     console.log('响应数据:', error.data)
     console.log('请求:', error.request)
@@ -305,13 +305,14 @@ const authClient = createVeloxa({
 ### 从 Axios 迁移
 
 ```typescript
-// Axios
 import axios from 'axios'
-
-// Veloxa
 import { veloxa } from 'veloxa'
+
+// Axios
 const response = await axios.get('/api/users')
 const data = response.data
+
+// Veloxa
 const data = await veloxa('/api/users')
 ```
 
@@ -365,19 +366,6 @@ Veloxa 适用于所有支持以下特性的现代浏览器和环境：
 - AbortController（用于超时）
 - Headers 构造函数
 
-对于旧浏览器，请考虑使用 polyfill：
-
-- [whatwg-fetch](https://github.com/github/fetch)
-- [abortcontroller-polyfill](https://github.com/mo/abortcontroller-polyfill)
-
-## 📊 包大小
-
-Veloxa 专为轻量化设计：
-
-- **压缩后**: ~8KB
-- **压缩 + Gzip**: ~3KB
-- **零依赖**（除了 Node.js 环境中的 polyfill）
-
 ## 🤝 贡献
 
 我们欢迎贡献！详情请参见我们的[贡献指南](CONTRIBUTING.md)。
@@ -395,5 +383,5 @@ Veloxa 专为轻量化设计：
 ---
 
 <p align="center">
-  <strong>由 Veloxa 团队用 ❤️ 制作</strong>
+  <strong>由 OpenKnights 团队用 ❤️ 制作</strong>
 </p>
