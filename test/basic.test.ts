@@ -1,8 +1,8 @@
 import type { MockServer } from 'create-mock-server'
 
-import { beforeAll, afterAll, describe, it, expect } from 'vitest'
 import { createMockServer } from 'create-mock-server'
 import { getQuery, getRouterParam, setHeader, setResponseStatus } from 'h3'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { veloxa } from '../src/index'
 
@@ -26,7 +26,7 @@ describe('Veloxa Basic Functionality', () => {
           handler: async (event) => {
             const id = getRouterParam(event, 'id')
             return {
-              id: parseInt(id || '1'),
+              id: Number.parseInt(id || '1'),
               name: `User ${id}`,
               email: `user${id}@example.com`
             }
@@ -72,8 +72,6 @@ describe('Veloxa Basic Functionality', () => {
   describe('GET Requests', () => {
     it('should fetch JSON data successfully', async () => {
       const response = await veloxa(`${server.url}/basic`)
-      console.log(`🚀 ~ server:`, server)
-      console.log(`GET Requests 🚀 ~ response:`, response)
 
       expect(response).toHaveProperty('message', 'Hello from mock server')
       expect(response).toHaveProperty('timestamp')

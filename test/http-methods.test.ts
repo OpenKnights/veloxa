@@ -1,8 +1,8 @@
-import { beforeAll, afterAll, describe, it, expect } from 'vitest'
-import { createMockServer } from 'create-mock-server'
 import type { MockServer } from 'create-mock-server'
-import { veloxa } from '../src/index'
+import { createMockServer } from 'create-mock-server'
 import { getHeaders, getRouterParam, readBody } from 'h3'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { veloxa } from '../src/index'
 
 describe('Veloxa HTTP Methods', () => {
   let server: MockServer
@@ -44,7 +44,7 @@ describe('Veloxa HTTP Methods', () => {
           url: '/users/:id',
           method: 'put',
           handler: async (event) => {
-            const id = parseInt(getRouterParam(event, 'id') || '1')
+            const id = Number.parseInt(getRouterParam(event, 'id') || '1')
             const body = await readBody(event)
 
             const updatedUser = { id, ...body }
@@ -61,7 +61,7 @@ describe('Veloxa HTTP Methods', () => {
           url: '/users/:id',
           method: 'patch',
           handler: async (event) => {
-            const id = parseInt(getRouterParam(event, 'id') || '1')
+            const id = Number.parseInt(getRouterParam(event, 'id') || '1')
             const body = await readBody(event)
 
             const existingUser = users.find((u) => u.id === id)
@@ -80,7 +80,7 @@ describe('Veloxa HTTP Methods', () => {
           url: '/users/:id',
           method: 'delete',
           handler: async (event) => {
-            const id = parseInt(getRouterParam(event, 'id') || '1')
+            const id = Number.parseInt(getRouterParam(event, 'id') || '1')
 
             return {
               success: true,

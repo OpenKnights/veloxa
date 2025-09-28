@@ -1,9 +1,10 @@
-import { beforeAll, afterAll, describe, it, expect, vi } from 'vitest'
-import { createMockServer } from 'create-mock-server'
+/* eslint-disable unused-imports/no-unused-vars */
 import type { MockServer } from 'create-mock-server'
-import { veloxa } from '../src/index'
 import type { VeloxaContext } from '../src/types'
+import { createMockServer } from 'create-mock-server'
 import { createError, readBody } from 'h3'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { veloxa } from '../src/index'
 
 describe('Veloxa Hooks', () => {
   let server: MockServer
@@ -22,7 +23,7 @@ describe('Veloxa Hooks', () => {
         {
           url: '/error',
           method: 'get',
-          handler: async (event) => {
+          handler: async () => {
             throw createError({
               statusCode: 400,
               statusMessage: 'Bad Request',
@@ -33,7 +34,7 @@ describe('Veloxa Hooks', () => {
         {
           url: '/server-error',
           method: 'get',
-          handler: async (event) => {
+          handler: async () => {
             throw createError({
               statusCode: 500,
               statusMessage: 'Internal Server Error'

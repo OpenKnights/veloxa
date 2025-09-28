@@ -1,9 +1,9 @@
-import { beforeAll, afterAll, describe, it, expect } from 'vitest'
-import { createMockServer } from 'create-mock-server'
 import type { MockServer } from 'create-mock-server'
-import { veloxa } from '../src/index'
-import { VeloxaError } from '../src/error'
+import { createMockServer } from 'create-mock-server'
 import { createError } from 'h3'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { VeloxaError } from '../src/error'
+import { veloxa } from '../src/index'
 
 describe('Veloxa Error Handling', () => {
   let server: MockServer
@@ -15,7 +15,7 @@ describe('Veloxa Error Handling', () => {
         {
           url: '/bad-request',
           method: 'get',
-          handler: async (event) => {
+          handler: async () => {
             throw createError({
               statusCode: 400,
               statusMessage: 'Bad Request',
@@ -28,7 +28,7 @@ describe('Veloxa Error Handling', () => {
         {
           url: '/unauthorized',
           method: 'get',
-          handler: async (event) => {
+          handler: async () => {
             throw createError({
               statusCode: 401,
               statusMessage: 'Unauthorized',
@@ -41,7 +41,7 @@ describe('Veloxa Error Handling', () => {
         {
           url: '/forbidden',
           method: 'get',
-          handler: async (event) => {
+          handler: async () => {
             throw createError({
               statusCode: 403,
               statusMessage: 'Forbidden',
@@ -54,7 +54,7 @@ describe('Veloxa Error Handling', () => {
         {
           url: '/not-found',
           method: 'get',
-          handler: async (event) => {
+          handler: async () => {
             throw createError({
               statusCode: 404,
               statusMessage: 'Not Found',
@@ -67,7 +67,7 @@ describe('Veloxa Error Handling', () => {
         {
           url: '/server-error',
           method: 'get',
-          handler: async (event) => {
+          handler: async () => {
             throw createError({
               statusCode: 500,
               statusMessage: 'Internal Server Error',
@@ -80,7 +80,7 @@ describe('Veloxa Error Handling', () => {
         {
           url: '/bad-gateway',
           method: 'get',
-          handler: async (event) => {
+          handler: async () => {
             throw createError({
               statusCode: 502,
               statusMessage: 'Bad Gateway',
@@ -105,7 +105,7 @@ describe('Veloxa Error Handling', () => {
           method: 'get',
           handler: (() => {
             let attemptCount = 0
-            return async (event) => {
+            return async () => {
               attemptCount++
               if (attemptCount < 3) {
                 throw createError({
@@ -287,7 +287,6 @@ describe('Veloxa Error Handling', () => {
           retryDelay: 100
         })
       } catch (error) {
-        const duration = Date.now()
         expect(error).toBeInstanceOf(VeloxaError)
         expect(error.statusCode).toBe(400)
       }

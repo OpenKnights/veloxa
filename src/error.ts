@@ -1,9 +1,9 @@
-import type { VeloxaContext, IVeloxaError } from './types'
+import type { IVeloxaError, VeloxaContext } from './types'
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
+// eslint-disable-next-line typescript/no-unsafe-declaration-merging
 export class VeloxaError<T = any> extends Error implements IVeloxaError<T> {
   constructor(message: string, opts?: { cause: unknown }) {
-    // @ts-ignore https://v8.dev/features/error-cause
+    // https://v8.dev/features/error-cause
     super(message, opts)
 
     this.name = 'VeloxaError'
