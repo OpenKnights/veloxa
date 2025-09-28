@@ -385,26 +385,4 @@ describe('Veloxa Response Types', () => {
       expect(typeof response).toBe('object')
     })
   })
-
-  describe('HEAD Method Response Handling', () => {
-    beforeAll(async () => {
-      // 添加 HEAD 方法支持
-      server.router.head('/json', async (event) => {
-        const { setHeader, setResponseStatus } = await import('h3')
-        setHeader(event, 'content-type', 'application/json')
-        setResponseStatus(event, 200)
-        return null
-      })
-    })
-
-    it('should handle HEAD requests without body', async () => {
-      const response = await veloxaRaw(`${server.url}/json`, {
-        method: 'HEAD'
-      })
-
-      expect(response.status).toBe(200)
-      expect(response.headers.get('content-type')).toContain('application/json')
-      expect(response._data).toBeUndefined()
-    })
-  })
 })

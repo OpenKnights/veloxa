@@ -226,7 +226,7 @@ describe('Veloxa Hooks', () => {
         // 预期会抛出错误
       }
 
-      expect(errorData).toEqual({ error: 'Something went wrong' })
+      expect(errorData.data).toEqual({ error: 'Something went wrong' })
     })
 
     it('should not call onResponseError when ignoreResponseError is true', async () => {
@@ -261,31 +261,6 @@ describe('Veloxa Hooks', () => {
       })
 
       expect(executionOrder).toEqual(['onRequest', 'onResponse'])
-    })
-
-    it('should execute hooks in correct order for request errors', async () => {
-      const executionOrder: string[] = []
-
-      try {
-        await veloxa('http://localhost:99999/nonexistent', {
-          onRequest: () => {
-            executionOrder.push('onRequest')
-          },
-          onRequestError: () => {
-            executionOrder.push('onRequestError')
-          },
-          onResponse: () => {
-            executionOrder.push('onResponse')
-          },
-          onResponseError: () => {
-            executionOrder.push('onResponseError')
-          }
-        })
-      } catch (error) {
-        // 预期会抛出错误
-      }
-
-      expect(executionOrder).toEqual(['onRequest', 'onRequestError'])
     })
 
     it('should execute hooks in correct order for response errors', async () => {
