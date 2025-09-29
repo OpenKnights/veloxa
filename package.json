@@ -57,7 +57,7 @@
     "ufo": "^1.6.1"
   },
   "devDependencies": {
-    "@king-3/eslint-config": "^1.0.5",
+    "@king-3/eslint-config": "^1.0.6",
     "@types/node": "^24.5.2",
     "bumpp": "^10.2.3",
     "create-mock-server": "^0.1.2",
