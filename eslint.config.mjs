@@ -7,9 +7,6 @@ const eslintConfig = king3(
   {
     name: 'custom-rules',
     rules: {
-      /* default */
-      'no-duplicate-imports': 'off',
-
       /* regpexp */
       'regexp/no-unused-capturing-group': 'off'
     }
