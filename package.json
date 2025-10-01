@@ -37,7 +37,7 @@
     }
   },
   "scripts": {
-    "build": "tsdown --clear --dts",
+    "build": "tsdown",
     "build:mock": "pnpm --filter mock-server run build",
     "test": "vitest",
     "test:basic": "vitest run test/basic.test.ts",
@@ -57,10 +57,11 @@
     "ufo": "^1.6.1"
   },
   "devDependencies": {
-    "@king-3/eslint-config": "^1.0.6",
+    "@king-3/eslint-config": "^1.0.8",
+    "@king-3/prettier-config": "^1.0.2",
     "@types/node": "^24.5.2",
     "bumpp": "^10.2.3",
-    "create-mock-server": "^0.1.2",
+    "create-mock-server": "^0.1.3",
     "eslint": "^9.34.0",
     "h3": "^1.15.4",
     "prettier": "^3.6.2",

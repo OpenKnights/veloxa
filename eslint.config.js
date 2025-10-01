@@ -1,6 +1,6 @@
-import king3 from '@king-3/eslint-config'
+import { defineConfig } from '@king-3/eslint-config'
 
-const eslintConfig = king3(
+const eslintConfig = defineConfig(
   {
     typescript: true
   },
