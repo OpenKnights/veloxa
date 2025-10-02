@@ -2,9 +2,9 @@ import type { UserConfig } from 'tsdown'
 
 import { defineConfig } from 'tsdown'
 
-const createConfigs = (baseConfig: UserConfig, configs: UserConfig[]) => {
+const createConfigs = (base: UserConfig, configs: UserConfig[]) => {
   const config = configs.map((config) => ({
-    ...baseConfig,
+    ...base,
     ...config
   })) as UserConfig
   return config
