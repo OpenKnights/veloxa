@@ -366,13 +366,9 @@ Veloxa 适用于所有支持以下特性的现代浏览器和环境：
 - AbortController（用于超时）
 - Headers 构造函数
 
-## 🤝 贡献
-
-我们欢迎贡献！详情请参见我们的[贡献指南](CONTRIBUTING.md)。
-
 ## 📄 许可证
 
-[MIT 许可证](LICENSE) © Veloxa 贡献者
+[MIT 许可证](LICENSE) © OpenKnights 贡献者
 
 ## 🙏 致谢
 

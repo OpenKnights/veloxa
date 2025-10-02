@@ -366,13 +366,9 @@ Veloxa works in all modern browsers and environments that support:
 - AbortController (for timeouts)
 - Headers constructor
 
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
 ## 📄 License
 
-[MIT License](LICENSE) © Veloxa Contributors
+[MIT License](LICENSE) © OpenKnights Contributors
 
 ## 🙏 Acknowledgments
 
