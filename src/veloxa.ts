@@ -10,6 +10,7 @@ import type {
 
 import destr from 'destr'
 import { withBase, withQuery } from 'ufo'
+
 import { NULL_BODY_RESPONSES, RETRY_STATUS_CODES } from './constants'
 import { createVeloxaError } from './error'
 import {

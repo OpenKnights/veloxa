@@ -1,7 +1,10 @@
 import type { MockServer } from 'create-mock-server'
+
 import { Buffer } from 'node:buffer'
+
 import { createMockServer } from 'create-mock-server'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+
 import { veloxa, veloxaRaw } from '../src/index'
 
 describe('Veloxa Response Types', () => {

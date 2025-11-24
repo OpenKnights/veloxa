@@ -1,10 +1,11 @@
-import { PAYLOAD_METHODS, TEXT_TYPES } from './constants'
-import {
+import type {
   MaybeArray,
   ResponseType,
   VeloxaContext,
   VeloxaProcessor
 } from './types'
+
+import { PAYLOAD_METHODS, TEXT_TYPES } from './constants'
 
 export function isPayloadMethod(method = 'GET') {
   return PAYLOAD_METHODS.has(method.toUpperCase())
@@ -57,6 +58,8 @@ export function detectResponseType(_contentType = ''): ResponseType {
 
   return 'blob'
 }
+
+export const createProcessor = (processor: VeloxaProcessor) => processor
 
 export async function callProcessor<C extends VeloxaContext = VeloxaContext>(
   context: C,

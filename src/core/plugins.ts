@@ -1,4 +1,5 @@
 import type { IDataObject, IVeloxaInit } from './types'
+
 import { DATA_METHODS, PARAMS_METHODS } from './constants'
 import { isType, transformGetParams } from './utils'
 

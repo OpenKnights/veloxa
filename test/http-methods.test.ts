@@ -1,7 +1,9 @@
 import type { MockServer } from 'create-mock-server'
+
 import { createMockServer } from 'create-mock-server'
 import { getHeaders, getRouterParam, readBody } from 'h3'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+
 import { veloxa } from '../src/index'
 
 describe('Veloxa HTTP Methods', () => {

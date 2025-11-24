@@ -1,4 +1,5 @@
 import type { IDataObject, IVeloxaInit, TVeloxaInput } from './types'
+
 import { processConfig, processResponse } from './interceptor'
 import { mergeRequestOptions } from './utils'
 import veloxa from './veloxa'

@@ -1,6 +1,6 @@
 //#region valoxa.ts
 
-import { VeloxaOptions, VeloxaRequest } from "./types"
+import type { VeloxaOptions, VeloxaRequest } from './types'
 
 async function veloxaRaw(request: VeloxaRequest, options: VeloxaOptions) {
   const context: any = {

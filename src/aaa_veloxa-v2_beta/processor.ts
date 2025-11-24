@@ -1,10 +1,13 @@
-import { withBase, withQuery } from 'ufo'
-import { VeloxaProcessor } from './types'
-import { detectResponseType, isJSONSerializable, isPayloadMethod } from './util'
 import destr from 'destr'
-import { NULL_BODY_RESPONSES } from './constants'
+import { withBase, withQuery } from 'ufo'
 
-const createProcessor = (processor: VeloxaProcessor) => processor
+import { NULL_BODY_RESPONSES } from './constants'
+import {
+  createProcessor,
+  detectResponseType,
+  isJSONSerializable,
+  isPayloadMethod
+} from './util'
 
 // 请求类型大写转换
 export const normalizeMethod = createProcessor((context) => {

@@ -1,9 +1,12 @@
 /* eslint-disable unused-imports/no-unused-vars */
 import type { MockServer } from 'create-mock-server'
+
 import type { VeloxaContext } from '../src/types'
+
 import { createMockServer } from 'create-mock-server'
 import { createError, readBody } from 'h3'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+
 import { veloxa } from '../src/index'
 
 describe('Veloxa Hooks', () => {

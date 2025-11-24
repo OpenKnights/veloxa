@@ -12,7 +12,7 @@ const createConfigs = (base: UserConfig, configs: UserConfig[]) => {
 
 const baseConfig: UserConfig = {
   entry: ['./src/index.ts'],
-  shims:true,
+  shims: true,
   clean: true
 }
 

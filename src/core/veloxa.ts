@@ -1,4 +1,5 @@
 import type { IVeloxaInit, TVeloxaInput } from './types'
+
 import interceptor from './interceptor'
 import { isType, RequestError } from './utils'
 

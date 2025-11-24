@@ -1,7 +1,9 @@
 import type { MockServer } from 'create-mock-server'
+
 import { createMockServer } from 'create-mock-server'
 import { createError } from 'h3'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+
 import { VeloxaError } from '../src/error'
 import { veloxa } from '../src/index'
 
