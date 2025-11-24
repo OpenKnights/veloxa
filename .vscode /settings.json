@@ -1,0 +1,16 @@
+{
+  /* Editor - General */
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  /* Editor - Code Actions */
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "never",
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "never"
+  },
+
+  /* Prettier */
+  "prettier.enable": true,
+  "prettier.configPath": "./prettier.config.js"
+}
