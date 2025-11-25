@@ -1,3 +1,8 @@
+export type Veloxa = <T = any, R extends ResponseType = 'json'>(
+  request: VeloxaRequest,
+  options?: VeloxaOptions<R>
+) => Promise<MappedResponseType<R, T>>
+
 export type VeloxaRequest = RequestInfo
 export interface VeloxaResponse<T> extends Response {
   _data?: T
@@ -39,6 +44,11 @@ export interface ResponseMap {
 
 export type ResponseType = keyof ResponseMap | 'json'
 
+export type MappedResponseType<
+  R extends ResponseType,
+  JsonType = any
+> = R extends keyof ResponseMap ? ResponseMap[R] : JsonType
+
 /* Helper */
 
 export type MaybePromise<T> = T | Promise<T>
@@ -68,4 +78,15 @@ export interface VeloxaInterceptors<
   onResponseError?: MaybeArray<
     VeloxaInterceptor<VeloxaContext<T, R> & { response: VeloxaResponse<T> }>
   >
+}
+
+export interface IVeloxaError<T = any> extends Error {
+  request?: VeloxaRequest
+  options?: VeloxaOptions
+  response?: VeloxaResponse<T>
+  data?: T
+  status?: number
+  statusText?: string
+  statusCode?: number
+  statusMessage?: string
 }

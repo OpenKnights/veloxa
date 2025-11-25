@@ -66,7 +66,7 @@ export const preparePayload = createProcessor((context) => {
   }
 })
 
-// 请求类型大写转换
+// 解析响应值
 export const parseResponse = createProcessor(async (context) => {
   if (!context.response) return
 

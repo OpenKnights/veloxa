@@ -1,16 +1,24 @@
 import type {
-  MaybeArray,
+  ResolvedVeloxaOptions,
   ResponseType,
   VeloxaContext,
-  VeloxaProcessor
+  VeloxaInterceptor,
+  VeloxaInterceptors,
+  VeloxaOptions,
+  VeloxaProcessor,
+  VeloxaRequest
 } from './types'
 
 import { PAYLOAD_METHODS, TEXT_TYPES } from './constants'
 
+export { defu as merge } from 'defu'
+
+// 是否是可以传参数的请求方式
 export function isPayloadMethod(method = 'GET') {
   return PAYLOAD_METHODS.has(method.toUpperCase())
 }
 
+// 是否可序列化
 export function isJSONSerializable(value: any) {
   if (value === undefined) {
     return false
@@ -59,34 +67,38 @@ export function detectResponseType(_contentType = ''): ResponseType {
   return 'blob'
 }
 
-export const createProcessor = (processor: VeloxaProcessor) => processor
+export function resolveVeloxaOptions<
+  R extends ResponseType = ResponseType,
+  T = any
+>(
+  request: VeloxaRequest,
+  options: VeloxaOptions<R, T> | undefined
+): ResolvedVeloxaOptions<R, T> {
+  const headers = new Headers(options?.headers ?? (request as Request)?.headers)
 
-export async function callProcessor<C extends VeloxaContext = VeloxaContext>(
-  context: C,
-  processors: MaybeArray<VeloxaProcessor<C>>
-): Promise<void> {
-  if (!processors) return
-
-  if (Array.isArray(processors)) {
-    for (const processor of processors) {
-      await processor(context)
-    }
-  } else {
-    await processors(context)
+  return {
+    ...options,
+    headers
   }
 }
 
-// export async function callHooks<C extends VeloxaContext = VeloxaContext>(
-//   context: C,
-//   hooks: VeloxaHook<C> | VeloxaHook<C>[] | undefined
-// ): Promise<void> {
-//   if (!hooks) return
+export const createProcessor = (processor: VeloxaProcessor) => processor
 
-//   if (Array.isArray(hooks)) {
-//     for (const hook of hooks) {
-//       await hook(context)
-//     }
-//   } else {
-//     await hooks(context)
-//   }
-// }
+export async function callInterceptor<C extends VeloxaContext = VeloxaContext>(
+  type: keyof VeloxaInterceptors,
+  context: C
+): Promise<void> {
+  if (!context.options[type]) return
+
+  const hooks = context.options[type] as
+    | VeloxaInterceptor<C>
+    | VeloxaInterceptor<C>[]
+
+  if (Array.isArray(hooks)) {
+    for (const hook of hooks) {
+      await hook(context)
+    }
+  } else {
+    await hooks(context)
+  }
+}
