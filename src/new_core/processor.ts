@@ -9,7 +9,10 @@ import {
   isPayloadMethod
 } from './util'
 
-// 请求类型大写转换
+/**
+ * Normalize HTTP method to uppercase
+ * Converts request method to uppercase for consistency
+ */
 export const normalizeMethod = createProcessor((context) => {
   if (typeof context.options.method !== 'string') return
 
@@ -18,7 +21,12 @@ export const normalizeMethod = createProcessor((context) => {
   context.options.method = UpperMethod
 })
 
-// 请求地址处理
+/**
+ * Process and normalize request URL
+ * - Applies baseURL if provided
+ * - Appends query parameters
+ * - Removes query from options after processing
+ */
 export const normalizeUrl = createProcessor((context) => {
   if (typeof context.request !== 'string') return
 
@@ -35,7 +43,11 @@ export const normalizeUrl = createProcessor((context) => {
   }
 })
 
-// 处理body和请求头
+/**
+ * Prepare request payload and headers
+ * - Serializes body to JSON or URL-encoded format for payload methods
+ * - Sets appropriate Content-Type and Accept headers
+ */
 export const preparePayload = createProcessor((context) => {
   if (
     !isPayloadMethod(context.options.method) ||
@@ -46,7 +58,7 @@ export const preparePayload = createProcessor((context) => {
 
   const contentType = context.options.headers.get('content-type')
 
-  // 当body不是字符串时, 自动将其转换成JSON字符串
+  // Auto-convert body to JSON string when not already a string
   if (typeof context.options.body !== 'string') {
     context.options.body =
       contentType === 'application/x-www-form-urlencoded'
@@ -56,7 +68,7 @@ export const preparePayload = createProcessor((context) => {
         : JSON.stringify(context.options.body)
   }
 
-  // 设置 Content-Type 和 Accept 报头的默认值为 application/json
+  // Set default Content-Type and Accept headers to application/json
   context.options.headers = new Headers(context.options.headers || {})
   if (!contentType) {
     context.options.headers.set('content-type', 'application/json')
@@ -66,7 +78,12 @@ export const preparePayload = createProcessor((context) => {
   }
 })
 
-// 解析响应值
+/**
+ * Parse response body based on content type
+ * - Detects response type from Content-Type header
+ * - Parses response using appropriate method (json, text, blob, stream)
+ * - Uses secure JSON parsing with destr by default
+ */
 export const parseResponse = createProcessor(async (context) => {
   if (!context.response) return
 

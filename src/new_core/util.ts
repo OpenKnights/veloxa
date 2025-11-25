@@ -11,14 +11,20 @@ import type {
 
 import { PAYLOAD_METHODS, TEXT_TYPES } from './constants'
 
-export { defu as merge } from 'defu'
-
-// 是否是可以传参数的请求方式
+/**
+ * Check if the HTTP method supports payload/body
+ * @param method - HTTP method (default: 'GET')
+ * @returns true if the method supports payload (PATCH, POST, PUT, DELETE)
+ */
 export function isPayloadMethod(method = 'GET') {
   return PAYLOAD_METHODS.has(method.toUpperCase())
 }
 
-// 是否可序列化
+/**
+ * Check if a value can be serialized to JSON
+ * @param value - Value to check
+ * @returns true if the value is JSON serializable
+ */
 export function isJSONSerializable(value: any) {
   if (value === undefined) {
     return false
@@ -41,7 +47,12 @@ export function isJSONSerializable(value: any) {
 
 const JSON_RE = /^application\/(?:[\w!#$%&*.^`~-]*\+)?json(;.+)?$/i
 
-// This provides reasonable defaults for the correct parser based on Content-Type header.
+/**
+ * Detect response type based on Content-Type header
+ * Provides reasonable defaults for the correct parser
+ * @param _contentType - Content-Type header value
+ * @returns The detected response type (json, text, stream, or blob)
+ */
 export function detectResponseType(_contentType = ''): ResponseType {
   if (!_contentType) {
     return 'json'
@@ -54,7 +65,7 @@ export function detectResponseType(_contentType = ''): ResponseType {
     return 'json'
   }
 
-  // SSE
+  // SSE (Server-Sent Events)
   // https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#sending_events_from_the_server
   if (contentType === 'text/event-stream') {
     return 'stream'
@@ -67,6 +78,12 @@ export function detectResponseType(_contentType = ''): ResponseType {
   return 'blob'
 }
 
+/**
+ * Resolve and normalize Veloxa options
+ * @param request - The request URL or Request object
+ * @param options - User-provided request options
+ * @returns Resolved options with normalized headers
+ */
 export function resolveVeloxaOptions<
   R extends ResponseType = ResponseType,
   T = any
@@ -82,8 +99,18 @@ export function resolveVeloxaOptions<
   }
 }
 
+/**
+ * Create a processor function
+ * @param processor - The processor function
+ * @returns The same processor function (identity function for type safety)
+ */
 export const createProcessor = (processor: VeloxaProcessor) => processor
 
+/**
+ * Call interceptor hooks for a specific lifecycle stage
+ * @param type - The interceptor type (onRequest, onRequestError, onResponse, onResponseError)
+ * @param context - The current request context
+ */
 export async function callInterceptor<C extends VeloxaContext = VeloxaContext>(
   type: keyof VeloxaInterceptors,
   context: C

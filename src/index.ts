@@ -5,7 +5,7 @@ export type * from './types'
 
 export * from './veloxa'
 
-export const veloxa: Veloxa = createVeloxa()
+export const veloxa = createVeloxa()
 
 // import { createFetch } from "./base.ts";
 // import type { $Fetch } from "./types.ts";

@@ -8,6 +8,8 @@ import type {
   VeloxaResponse
 } from './types'
 
+import { defu as merge } from 'defu'
+
 import { createVeloxaError } from './error'
 import {
   normalizeMethod,
@@ -15,8 +17,14 @@ import {
   parseResponse,
   preparePayload
 } from './processor'
-import { callInterceptor, merge, resolveVeloxaOptions } from './util'
+import { callInterceptor, resolveVeloxaOptions } from './util'
 
+/**
+ * Raw Veloxa request function that returns the full response object
+ * @param request - The request URL or Request object
+ * @param options - Request options including headers, body, interceptors, etc.
+ * @returns Promise resolving to the VeloxaResponse with typed data
+ */
 export async function veloxaRaw<T = any, R extends ResponseType = 'json'>(
   request: VeloxaRequest,
   options?: VeloxaOptions<R>
@@ -28,19 +36,19 @@ export async function veloxaRaw<T = any, R extends ResponseType = 'json'>(
     error: undefined
   }
 
-  // 请求类型大写转换
+  // Normalize request method to uppercase
   await normalizeMethod(context)
 
-  // 请求前拦截
+  // Execute onRequest interceptor
   await callInterceptor('onRequest', context)
 
-  // 请求地址处理
+  // Process and normalize request URL
   await normalizeUrl(context)
 
-  // 处理body和请求头
+  // Prepare request body and headers
   await preparePayload(context)
 
-  // 设置请求超时
+  // Set up request timeout
   let abortTimeout: NodeJS.Timeout | undefined
   if (!context.options.signal && context.options.timeout) {
     const controller = new AbortController()
@@ -61,7 +69,7 @@ export async function veloxaRaw<T = any, R extends ResponseType = 'json'>(
       context.options as RequestInit
     )
   } catch (error) {
-    // 请求错误拦截
+    // Execute onRequestError interceptor
     context.error = error as Error
     await callInterceptor(
       'onRequestError',
@@ -74,16 +82,16 @@ export async function veloxaRaw<T = any, R extends ResponseType = 'json'>(
     }
   }
 
-  // 序列化请求响应值
+  // Parse response data
   await parseResponse(context)
 
-  // 响应拦截
+  // Execute onResponse interceptor
   await callInterceptor(
     'onResponse',
     context as VeloxaContext & { response: VeloxaResponse<any> }
   )
 
-  // 响应错误拦截
+  // Handle response errors (4xx, 5xx status codes)
   if (
     !context.options.ignoreResponseError &&
     context.response.status >= 400 &&
@@ -99,6 +107,11 @@ export async function veloxaRaw<T = any, R extends ResponseType = 'json'>(
   return context.response
 }
 
+/**
+ * Create a Veloxa instance with default options
+ * @param defaults - Default options to be merged with each request
+ * @returns Veloxa function that returns parsed data directly
+ */
 export const createVeloxa = (defaults: VeloxaOptions = {}): Veloxa => {
   const veloxa = async function veloxa(request, options) {
     const mergeOptions = merge({}, options, defaults)
@@ -109,6 +122,11 @@ export const createVeloxa = (defaults: VeloxaOptions = {}): Veloxa => {
   return veloxa
 }
 
+/**
+ * Error handler that creates and throws a normalized VeloxaError
+ * @param context - The current request context
+ * @returns Promise that always rejects with VeloxaError
+ */
 async function onError(context: VeloxaContext): Promise<VeloxaResponse<any>> {
   // Throw normalized error
   const error = createVeloxaError(context)
