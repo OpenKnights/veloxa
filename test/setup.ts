@@ -1,15 +1,16 @@
+/* eslint-disable no-console */
 import type { AppServer } from 'better-mock-server'
+
+import { Buffer } from 'node:buffer'
 
 import { createAppServer } from 'better-mock-server'
 import { HTTPError, readBody } from 'h3'
 import { afterAll, beforeAll } from 'vitest'
 
-// eslint-disable-lint import/no-mutable-exports
+// eslint-disable-next-line import/no-mutable-exports
 export let mockServer: AppServer
 
 type Recordable<T = any> = Record<string, T>
-
-// console.log('111')
 
 /**
  * Setup mock server before all tests
