@@ -1,11 +1,21 @@
+export type Fetch = typeof globalThis.fetch
+
 /**
  * Main Veloxa function type
  * Makes HTTP requests and returns parsed data
  */
-export type Veloxa = <T = any, R extends ResponseType = 'json'>(
-  request: VeloxaRequest,
-  options?: VeloxaOptions<R>
-) => Promise<MappedResponseType<R, T>>
+export interface Veloxa {
+  <T = any, R extends ResponseType = 'json'>(
+    request: VeloxaRequest,
+    options?: VeloxaOptions<R>
+  ): Promise<MappedResponseType<R, T>>
+  raw<T = any, R extends ResponseType = 'json'>(
+    request: VeloxaRequest,
+    options?: VeloxaOptions<R>
+  ): Promise<VeloxaResponse<MappedResponseType<R, T>>>
+  native: Fetch
+  create(defaults: VeloxaOptions): Veloxa
+}
 
 /**
  * Request input type (URL string or Request object)

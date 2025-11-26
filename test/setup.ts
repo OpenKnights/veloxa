@@ -148,7 +148,7 @@ beforeAll(async () => {
       '/api/headers': {
         GET: (event) => {
           return {
-            received: event.req.headers
+            received: Object.fromEntries(event.req.headers.entries())
           }
         }
       },
@@ -194,5 +194,11 @@ afterAll(async () => {
  * Get the base URL of the mock server
  */
 export function getMockUrl(path: string = ''): string {
-  return `${mockServer.url}${path.startsWith('/') ? path.slice(1) : path}`
+  const base = (mockServer.url || '').replace(/\/$/, '')
+
+  if (!path) {
+    return base
+  }
+
+  return `${base}/${path.replace(/^\//, '')}`
 }

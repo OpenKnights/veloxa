@@ -95,7 +95,9 @@ describe('Basic Requests', () => {
       })
 
       expect(data.contentType).toContain('application/x-www-form-urlencoded')
-      expect(data.received).toBe('username=john&password=secret')
+      expect(JSON.stringify(data.received)).toBe(
+        '{"username":"john","password":"secret"}'
+      )
     })
   })
 

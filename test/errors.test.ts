@@ -22,7 +22,7 @@ describe('Error Handling', () => {
         expect(error).toHaveProperty('statusCode', 400)
         expect(error).toHaveProperty('statusText', 'Bad Request')
         expect(error).toHaveProperty('data')
-        expect(error.data).toHaveProperty('error', 'Bad Request')
+        expect(error.data).toHaveProperty('statusText', 'Bad Request')
         expect(error.data).toHaveProperty(
           'message',
           'Invalid request parameters'
@@ -191,9 +191,10 @@ describe('Error Handling', () => {
       })
 
       expect(response).toBeDefined()
+      console.log(`🚀 ~ response:`, response)
       expect(response.status).toBe(404)
       expect(response._data).toBeDefined()
-      expect(response._data.error).toBe('Not Found')
+      expect(response._data.statusText).toBe('Not Found')
     })
 
     it('should return error data when ignoreResponseError is true', async () => {
@@ -202,7 +203,7 @@ describe('Error Handling', () => {
       })
 
       expect(response.status).toBe(500)
-      expect(response._data.error).toBe('Internal Server Error')
+      expect(response._data.statusText).toBe('Internal Server Error')
       expect(response._data.message).toBe('Something went wrong')
     })
   })

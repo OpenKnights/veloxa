@@ -44,7 +44,6 @@
     "play": "play",
     "build": "tsx scripts/build.ts",
     "test": "vitest",
-    "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:basic": "vitest run test/basic.test.ts",
     "test:errors": "vitest run test/errors.test.ts",

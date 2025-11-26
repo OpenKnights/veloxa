@@ -25,7 +25,7 @@ describe('Response Types', () => {
 
   describe('Text responses', () => {
     it('should parse text/plain response', async () => {
-      const data = await veloxa<string>(getMockUrl('/api/text'), {
+      const data = await veloxa<string, 'text'>(getMockUrl('/api/text'), {
         responseType: 'text'
       })
 
@@ -35,7 +35,7 @@ describe('Response Types', () => {
     })
 
     it('should parse text/html response', async () => {
-      const data = await veloxa<string>(getMockUrl('/api/html'), {
+      const data = await veloxa<string, 'text'>(getMockUrl('/api/html'), {
         responseType: 'text'
       })
 
@@ -47,7 +47,7 @@ describe('Response Types', () => {
 
   describe('Blob responses', () => {
     it('should handle blob response', async () => {
-      const data = await veloxa<Blob>(getMockUrl('/api/blob'), {
+      const data = await veloxa<Blob, 'blob'>(getMockUrl('/api/blob'), {
         responseType: 'blob'
       })
 

@@ -25,12 +25,15 @@ import { callInterceptor, resolveVeloxaOptions } from './util'
  * @param options - Request options including headers, body, interceptors, etc.
  * @returns Promise resolving to the VeloxaResponse with typed data
  */
-export async function veloxaRaw<T = any, R extends ResponseType = 'json'>(
+export const veloxaRaw: Veloxa['raw'] = async function $veloxaRaw<
+  T = any,
+  R extends ResponseType = 'json'
+>(
   request: VeloxaRequest,
-  options?: VeloxaOptions<R>
+  options: VeloxaOptions<R> = {}
 ): Promise<VeloxaResponse<MappedResponseType<R, T>>> {
   const context: VeloxaContext = {
-    options: resolveVeloxaOptions(request, options),
+    options: resolveVeloxaOptions<R, T>(request, options),
     request,
     response: undefined,
     error: undefined
@@ -118,6 +121,12 @@ export const createVeloxa = (defaults: VeloxaOptions = {}): Veloxa => {
     const r = await veloxaRaw(request, mergeOptions)
     return r._data
   } as Veloxa
+
+  veloxa.raw = veloxaRaw
+
+  veloxa.native = fetch
+
+  veloxa.create = (defaultOptions = {}) => createVeloxa(defaultOptions)
 
   return veloxa
 }
