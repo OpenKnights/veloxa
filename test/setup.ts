@@ -1,11 +1,15 @@
-import { beforeAll, afterAll } from 'vitest'
-import { createAppServer } from 'better-mock-server'
 import type { AppServer } from 'better-mock-server'
-import { HTTPError, readBody } from 'h3'
 
+import { createAppServer } from 'better-mock-server'
+import { HTTPError, readBody } from 'h3'
+import { afterAll, beforeAll } from 'vitest'
+
+// eslint-disable-lint import/no-mutable-exports
 export let mockServer: AppServer
 
 type Recordable<T = any> = Record<string, T>
+
+// console.log('111')
 
 /**
  * Setup mock server before all tests
@@ -23,9 +27,12 @@ beforeAll(async () => {
         ],
         POST: async (event) => {
           const body = await readBody<Recordable>(event)
+
           return {
             id: Date.now(),
-            ...body,
+            ...(!!body && body.constructor === Object
+              ? body
+              : { params: body }),
             createdAt: new Date().toISOString()
           }
         }
@@ -45,7 +52,9 @@ beforeAll(async () => {
           const body = await readBody<Recordable>(event)
           return {
             id: Number(id),
-            ...body,
+            ...(!!body && body.constructor === Object
+              ? body
+              : { params: body }),
             updatedAt: new Date().toISOString()
           }
         },
@@ -145,11 +154,9 @@ beforeAll(async () => {
       },
 
       // Custom headers
-      '/api/headers': {
-        GET: (event) => {
-          return {
-            received: Object.fromEntries(event.req.headers.entries())
-          }
+      '/api/headers': (event) => {
+        return {
+          received: Object.fromEntries(event.req.headers.entries())
         }
       },
 
@@ -171,7 +178,9 @@ beforeAll(async () => {
           const body = await readBody<Recordable>(event)
           return {
             id: Number(id),
-            ...body,
+            ...(!!body && body.constructor === Object
+              ? body
+              : { params: body }),
             patched: true
           }
         }

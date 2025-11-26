@@ -1,5 +1,8 @@
-import { describe, it, expect } from 'vitest'
-import { veloxa, createVeloxa, VeloxaError } from '../src'
+import type { VeloxaError } from '../src'
+
+import { describe, expect, it } from 'vitest'
+
+import { createVeloxa, veloxa } from '../src'
 import { getMockUrl } from './setup'
 
 describe('Headers and Options', () => {
@@ -167,7 +170,7 @@ describe('Headers and Options', () => {
 
     it('should handle baseURL with trailing slash', async () => {
       const data = await veloxa('api/users', {
-        baseURL: getMockUrl() + '/'
+        baseURL: `${getMockUrl()}/`
       })
 
       expect(data).toBeDefined()
@@ -251,7 +254,7 @@ describe('Headers and Options', () => {
         body
       })
 
-      expect(Array.isArray(data)).toBe(true)
+      expect(Array.isArray(data.params)).toBe(true)
     })
 
     it('should not send body for GET requests', async () => {

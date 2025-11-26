@@ -1,5 +1,4 @@
 import { createVeloxa } from './veloxa'
-import type { Veloxa } from './types'
 
 export * from './error'
 

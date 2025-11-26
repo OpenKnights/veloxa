@@ -1,4 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
 import { veloxa } from '../src'
 import { getMockUrl } from './setup'
 
@@ -282,8 +283,7 @@ describe('Interceptors', () => {
         // Expected to throw
       }
 
-      expect(order).toEqual(['onRequest', 'onResponseError'])
-      expect(order).not.toContain('onResponse')
+      expect(order).toEqual(['onRequest', 'onResponse', 'onResponseError'])
     })
 
     it('should handle async interceptors', async () => {

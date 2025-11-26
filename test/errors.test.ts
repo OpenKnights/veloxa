@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { veloxa, veloxaRaw, VeloxaError } from '../src'
+import { describe, expect, it } from 'vitest'
+
+import { veloxa, VeloxaError, veloxaRaw } from '../src'
 import { getMockUrl } from './setup'
 
 describe('Error Handling', () => {
@@ -191,7 +192,6 @@ describe('Error Handling', () => {
       })
 
       expect(response).toBeDefined()
-      console.log(`🚀 ~ response:`, response)
       expect(response.status).toBe(404)
       expect(response._data).toBeDefined()
       expect(response._data.statusText).toBe('Not Found')

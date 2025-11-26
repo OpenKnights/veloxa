@@ -9,12 +9,12 @@ export interface Veloxa {
     request: VeloxaRequest,
     options?: VeloxaOptions<R>
   ): Promise<MappedResponseType<R, T>>
-  raw<T = any, R extends ResponseType = 'json'>(
+  raw: <T = any, R extends ResponseType = 'json'>(
     request: VeloxaRequest,
     options?: VeloxaOptions<R>
-  ): Promise<VeloxaResponse<MappedResponseType<R, T>>>
+  ) => Promise<VeloxaResponse<MappedResponseType<R, T>>>
   native: Fetch
-  create(defaults: VeloxaOptions): Veloxa
+  create: (defaults: VeloxaOptions) => Veloxa
 }
 
 /**
