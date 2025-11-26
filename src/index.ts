@@ -1,8 +1,9 @@
 import { createVeloxa } from './veloxa'
+import type { Veloxa } from './types'
 
 export * from './error'
-export type * from './types'
 
+export type * from './types'
 export * from './veloxa'
 
 export const veloxa = createVeloxa()

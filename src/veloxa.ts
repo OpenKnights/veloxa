@@ -1,93 +1,54 @@
 import type {
+  MappedResponseType,
   ResponseType,
   Veloxa,
   VeloxaContext,
   VeloxaOptions,
-  VeloxaRaw,
   VeloxaRequest,
   VeloxaResponse
 } from './types'
 
-import destr from 'destr'
-import { withBase, withQuery } from 'ufo'
+import { defu as merge } from 'defu'
 
-import { NULL_BODY_RESPONSES, RETRY_STATUS_CODES } from './constants'
 import { createVeloxaError } from './error'
 import {
-  callHooks,
-  detectResponseType,
-  isJSONSerializable,
-  isPayloadMethod,
-  merge,
-  resolveVeloxaOptions
-} from './utils'
+  normalizeMethod,
+  normalizeUrl,
+  parseResponse,
+  preparePayload
+} from './processor'
+import { callInterceptor, resolveVeloxaOptions } from './util'
 
-export const veloxaRaw: VeloxaRaw = async function veloxaRaw<
-  T = any,
-  R extends ResponseType = 'json'
->(request: VeloxaRequest, options: VeloxaOptions<R> = {}) {
+/**
+ * Raw Veloxa request function that returns the full response object
+ * @param request - The request URL or Request object
+ * @param options - Request options including headers, body, interceptors, etc.
+ * @returns Promise resolving to the VeloxaResponse with typed data
+ */
+export async function veloxaRaw<T = any, R extends ResponseType = 'json'>(
+  request: VeloxaRequest,
+  options?: VeloxaOptions<R>
+): Promise<VeloxaResponse<MappedResponseType<R, T>>> {
   const context: VeloxaContext = {
-    options: resolveVeloxaOptions<R, T>(request, options, Headers),
+    options: resolveVeloxaOptions(request, options),
     request,
     response: undefined,
     error: undefined
   }
 
-  // 请求类型大写转换
-  if (context.options.method) {
-    const UpperMethod = context.options.method.toUpperCase()
+  // Normalize request method to uppercase
+  await normalizeMethod(context)
 
-    context.options.method = UpperMethod
-  }
+  // Execute onRequest interceptor
+  await callInterceptor('onRequest', context)
 
-  // 请求前拦截
-  if (context.options.onRequest) {
-    await callHooks(context, context.options.onRequest)
-  }
+  // Process and normalize request URL
+  await normalizeUrl(context)
 
-  // 请求地址处理
-  if (typeof context.request === 'string') {
-    if (context.options.baseURL) {
-      context.request = withBase(context.request, context.options.baseURL)
-    }
+  // Prepare request body and headers
+  await preparePayload(context)
 
-    if (context.options.query) {
-      context.request = withQuery(context.request, context.options.query)
-    }
-
-    if (Reflect.get(context.options, 'query')) {
-      Reflect.deleteProperty(context.options, 'query')
-    }
-  }
-
-  // 处理body和请求头
-  if (
-    isPayloadMethod(context.options.method) &&
-    isJSONSerializable(context.options.body)
-  ) {
-    const contentType = context.options.headers.get('content-type')
-
-    // 当body不是字符串时, 自动将其转换成JSON字符串
-    if (typeof context.options.body !== 'string') {
-      context.options.body =
-        contentType === 'application/x-www-form-urlencoded'
-          ? new URLSearchParams(
-              context.options.body as Record<string, any>
-            ).toString()
-          : JSON.stringify(context.options.body)
-    }
-
-    // 设置 Content-Type 和 Accept 报头的默认值为 application/json
-    context.options.headers = new Headers(context.options.headers || {})
-    if (!contentType) {
-      context.options.headers.set('content-type', 'application/json')
-    }
-    if (!context.options.headers.has('accept')) {
-      context.options.headers.set('accept', 'application/json')
-    }
-  }
-
-  // 设置请求超时
+  // Set up request timeout
   let abortTimeout: NodeJS.Timeout | undefined
   if (!context.options.signal && context.options.timeout) {
     const controller = new AbortController()
@@ -108,14 +69,12 @@ export const veloxaRaw: VeloxaRaw = async function veloxaRaw<
       context.options as RequestInit
     )
   } catch (error) {
-    // 请求错误拦截
+    // Execute onRequestError interceptor
     context.error = error as Error
-    if (context.options.onRequestError) {
-      await callHooks(
-        context as VeloxaContext & { error: Error },
-        context.options.onRequestError
-      )
-    }
+    await callInterceptor(
+      'onRequestError',
+      context as VeloxaContext & { error: Error }
+    )
     return await onError(context)
   } finally {
     if (abortTimeout) {
@@ -123,61 +82,36 @@ export const veloxaRaw: VeloxaRaw = async function veloxaRaw<
     }
   }
 
-  // 序列化请求响应值
-  const hasBody =
-    (context.response.body || (context.response as any)._bodyInit) &&
-    !NULL_BODY_RESPONSES.has(context.response.status) &&
-    context.options.method !== 'HEAD'
-  if (hasBody) {
-    const responseType =
-      (context.options.parseResponse ? 'json' : context.options.responseType) ||
-      detectResponseType(context.response.headers.get('content-type') || '')
+  // Parse response data
+  await parseResponse(context)
 
-    // We override the `.json()` method to parse the body more securely with `destr`
-    switch (responseType) {
-      case 'json': {
-        const data = await context.response.text()
-        const parseFunction = context.options.parseResponse || destr
-        context.response._data = parseFunction(data)
-        break
-      }
-      case 'stream': {
-        context.response._data =
-          context.response.body || (context.response as any)._bodyInit // (see refs above)
-        break
-      }
-      default: {
-        context.response._data = await context.response[responseType]()
-      }
-    }
-  }
+  // Execute onResponse interceptor
+  await callInterceptor(
+    'onResponse',
+    context as VeloxaContext & { response: VeloxaResponse<any> }
+  )
 
-  // 响应拦截
-  if (context.options.onResponse) {
-    await callHooks(
-      context as VeloxaContext & { response: VeloxaResponse<any> },
-      context.options.onResponse
-    )
-  }
-
-  // 响应错误拦截
+  // Handle response errors (4xx, 5xx status codes)
   if (
     !context.options.ignoreResponseError &&
     context.response.status >= 400 &&
     context.response.status < 600
   ) {
-    if (context.options.onResponseError) {
-      await callHooks(
-        context as VeloxaContext & { response: VeloxaResponse<any> },
-        context.options.onResponseError
-      )
-    }
+    await callInterceptor(
+      'onResponseError',
+      context as VeloxaContext & { response: VeloxaResponse<any> }
+    )
     return await onError(context)
   }
 
   return context.response
 }
 
+/**
+ * Create a Veloxa instance with default options
+ * @param defaults - Default options to be merged with each request
+ * @returns Veloxa function that returns parsed data directly
+ */
 export const createVeloxa = (defaults: VeloxaOptions = {}): Veloxa => {
   const veloxa = async function veloxa(request, options) {
     const mergeOptions = merge({}, options, defaults)
@@ -188,46 +122,12 @@ export const createVeloxa = (defaults: VeloxaOptions = {}): Veloxa => {
   return veloxa
 }
 
+/**
+ * Error handler that creates and throws a normalized VeloxaError
+ * @param context - The current request context
+ * @returns Promise that always rejects with VeloxaError
+ */
 async function onError(context: VeloxaContext): Promise<VeloxaResponse<any>> {
-  // Is Abort
-  // If it is an active abort, it will not retry automatically.
-  // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
-  const isAbort =
-    (context.error &&
-      context.error.name === 'AbortError' &&
-      !context.options.timeout) ||
-    false
-  // Retry
-  if (context.options.retry !== false && !isAbort) {
-    let retries
-    if (typeof context.options.retry === 'number') {
-      retries = context.options.retry
-    } else {
-      retries = isPayloadMethod(context.options.method) ? 0 : 1
-    }
-
-    const responseCode = (context.response && context.response.status) || 500
-    if (
-      retries > 0 &&
-      (Array.isArray(context.options.retryStatusCodes)
-        ? context.options.retryStatusCodes.includes(responseCode)
-        : RETRY_STATUS_CODES.has(responseCode))
-    ) {
-      const retryDelay =
-        typeof context.options.retryDelay === 'function'
-          ? context.options.retryDelay(context)
-          : context.options.retryDelay || 0
-      if (retryDelay > 0) {
-        await new Promise((resolve) => setTimeout(resolve, retryDelay))
-      }
-      // Timeout
-      return veloxaRaw(context.request, {
-        ...context.options,
-        retry: retries - 1
-      })
-    }
-  }
-
   // Throw normalized error
   const error = createVeloxaError(context)
 
