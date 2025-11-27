@@ -14,19 +14,6 @@ export default defineConfig({
     // Listening mode
     watch: false,
 
-    // Coverage configuration
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'test/',
-        '**/*.test.ts',
-        '**/*.spec.ts',
-        '**/types.ts'
-      ]
-    },
-
     // Include test files
     include: ['test/**/*.test.ts'],
 
@@ -35,12 +22,6 @@ export default defineConfig({
 
     // Globals
     globals: true,
-
-    // Reporter
-    reporters: ['verbose'],
-
-    // Retry failed tests
-    retry: 0,
 
     // Run tests in parallel
     pool: 'threads',
