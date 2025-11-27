@@ -1,6 +1,6 @@
 {
   "name": "veloxa",
-  "version": "1.0.3",
+  "version": "2.0.0",
   "description": "Veloxa is a fast, native request library based on the Fetch API.",
   "type": "module",
   "keywords": [
