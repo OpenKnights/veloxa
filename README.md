@@ -11,14 +11,14 @@
 
 ## ✨ Features
 
-- 🚀 **Fast & Lightweight** - Built on native Fetch API with minimal overhead
-- 🔄 **Smart Retry** - Configurable retry mechanism with exponential backoff
+- 🚀 **Fast & Lightweight** - Built on native Fetch API with zero dependencies (except utils)
 - 🎯 **TypeScript First** - Full TypeScript support with excellent type inference
-- 🪝 **Hook System** - Powerful request/response interceptors
-- ⏱️ **Timeout Support** - Built-in request timeout handling
-- 🎨 **Auto Serialization** - Automatic JSON/FormData/URLSearchParams handling
-- 🌐 **Universal** - Works in browsers, Node.js, and edge runtimes
-- 🛡️ **Error Handling** - Comprehensive error handling with detailed context
+- 🪝 **Interceptor System** - Powerful request/response lifecycle hooks
+- ⏱️ **Timeout Support** - Built-in request timeout with AbortController
+- 🎨 **Auto Serialization** - Automatic JSON/URLSearchParams serialization
+- 🌐 **Universal** - Works in browsers, Node.js, Deno, Bun, and edge runtimes
+- 🛡️ **Smart Error Handling** - Detailed error context with VeloxaError
+- 📦 **Tree-shakeable** - Optimized bundle size with ES modules
 
 ## 📦 Installation
 
@@ -31,6 +31,9 @@ yarn add veloxa
 
 # pnpm
 pnpm add veloxa
+
+# bun
+bun add veloxa
 ```
 
 ## 🚀 Quick Start
@@ -38,7 +41,7 @@ pnpm add veloxa
 ```typescript
 import { veloxa } from 'veloxa'
 
-// Simple GET request
+// Simple GET request (returns parsed data)
 const data = await veloxa('https://api.example.com/users')
 
 // POST request with JSON body
@@ -50,7 +53,7 @@ const user = await veloxa('https://api.example.com/users', {
   }
 })
 
-// Using TypeScript
+// With TypeScript type inference
 interface User {
   id: number
   name: string
@@ -58,326 +61,264 @@ interface User {
 }
 
 const user = await veloxa<User>('https://api.example.com/users/1')
+console.log(user.name) // Fully typed!
 ```
 
 ## 📖 API Reference
 
-### Basic Usage
+### Main Functions
+
+#### `veloxa(request, options?)`
+
+Makes an HTTP request and returns the parsed response data.
 
 ```typescript
-veloxa(request, options)
+const data = await veloxa<T>(request, options)
 ```
 
-### Options
+#### `veloxa.raw(request, options?)`
+
+Returns the full Response object with `_data` property containing parsed data.
 
 ```typescript
-interface VeloxaOptions {
-  // Standard fetch options
-  method?: string
-  headers?: HeadersInit
-  body?: RequestInit['body'] | Record<string, any>
-
-  // Veloxa specific options
-  baseURL?: string
-  query?: Record<string, any>
-  timeout?: number
-  retry?: number | false
-  retryDelay?: number | ((context: VeloxaContext) => number)
-  retryStatusCodes?: number[]
-  responseType?: 'json' | 'text' | 'blob' | 'arrayBuffer' | 'stream'
-  parseResponse?: (responseText: string) => any
-  ignoreResponseError?: boolean
-
-  // Hooks
-  onRequest?: VeloxaHook | VeloxaHook[]
-  onRequestError?: VeloxaHook | VeloxaHook[]
-  onResponse?: VeloxaHook | VeloxaHook[]
-  onResponseError?: VeloxaHook | VeloxaHook[]
-}
+const response = await veloxa.raw(request, options)
+console.log(response.status) // HTTP status code
+console.log(response.statusText) // HTTP status text
+console.log(response._data) // Parsed response data
 ```
 
-### Response Types
+#### `veloxa.native`
+
+Access to the native fetch function.
 
 ```typescript
-// Get parsed JSON data (default)
-// Get raw response
-import { veloxaRaw } from 'veloxa'
-
-const data = await veloxa<User>('/api/users')
-const response = await veloxaRaw('/api/users')
-
-// Different response types
-const text = await veloxa('/api/text', { responseType: 'text' })
-const blob = await veloxa('/api/file', { responseType: 'blob' })
-const buffer = await veloxa('/api/binary', { responseType: 'arrayBuffer' })
+const response = await veloxa.native('https://api.example.com')
 ```
 
-## 🔧 Configuration
+#### `veloxa.create(defaults)`
 
-### Base URL and Query Parameters
+Create a new veloxa instance with default options.
 
 ```typescript
-const api = createVeloxa({
+const api = veloxa.create({
   baseURL: 'https://api.example.com',
   headers: {
     Authorization: 'Bearer token'
   }
 })
 
-// GET https://api.example.com/users?page=1&limit=10
-const users = await api('/users', {
-  query: { page: 1, limit: 10 }
-})
+const users = await api('/users')
 ```
 
-### Timeout
+### Options
 
 ```typescript
-// 5 second timeout
-const data = await veloxa('/api/slow-endpoint', {
-  timeout: 5000
-})
+interface VeloxaOptions<R extends ResponseType = ResponseType> {
+  // Standard fetch options
+  method?: string
+  headers?: HeadersInit
+  body?: RequestInit['body'] | Record<string, any>
+  signal?: AbortSignal
+  credentials?: RequestCredentials
+  cache?: RequestCache
+  redirect?: RequestRedirect
+  referrer?: string
+  referrerPolicy?: ReferrerPolicy
+  mode?: RequestMode
+  integrity?: string
+  keepalive?: boolean
+
+  // Veloxa specific options
+  baseURL?: string
+  query?: Record<string, any>
+  timeout?: number
+  responseType?: 'json' | 'text' | 'blob' | 'stream'
+  parseResponse?: (responseText: string) => any
+  ignoreResponseError?: boolean
+
+  // Interceptors
+  onRequest?: VeloxaInterceptor | VeloxaInterceptor[]
+  onRequestError?: VeloxaInterceptor | VeloxaInterceptor[]
+  onResponse?: VeloxaInterceptor | VeloxaInterceptor[]
+  onResponseError?: VeloxaInterceptor | VeloxaInterceptor[]
+}
 ```
 
-### Retry Configuration
+### Response Types
+
+Veloxa automatically detects and parses response based on `Content-Type` header, or you can explicitly specify the response type:
 
 ```typescript
-// Retry up to 3 times with exponential backoff
-const data = await veloxa('/api/unreliable', {
-  retry: 3,
-  retryDelay: (context) => 2 ** (3 - context.options.retry!) * 1000,
-  retryStatusCodes: [408, 429, 500, 502, 503, 504]
+// JSON (default) - auto-parsed
+const data = await veloxa<User[]>('/api/users')
+
+// Text response
+const text = await veloxa('/api/text', {
+  responseType: 'text'
 })
 
-// Disable retry for specific request
-const data = await veloxa('/api/endpoint', {
-  retry: false
+// Blob (for files)
+const blob = await veloxa('/api/file', {
+  responseType: 'blob'
 })
-```
 
-### Custom Response Parser
+// Stream (for streaming responses)
+const stream = await veloxa('/api/stream', {
+  responseType: 'stream'
+})
 
-```typescript
+// Custom parser
 const data = await veloxa('/api/xml', {
-  responseType: 'text',
-  parseResponse: (text) => new DOMParser().parseFromString(text, 'text/xml')
+  parseResponse: (text) => parseXML(text)
 })
 ```
 
-## 🪝 Hook System
+## 🪝 Interceptor System
 
-### Request Hooks
+Interceptors allow you to hook into the request/response lifecycle:
+
+### Request Interceptors
 
 ```typescript
-const api = createVeloxa({
+const api = veloxa.create({
+  // Called before request is sent
   onRequest({ request, options }) {
-    // Modify request before sending
-    console.log('Requesting:', request)
-    options.headers.set('X-Request-ID', generateId())
+    console.log('Request:', request)
+
+    // Modify headers
+    options.headers.set('X-Request-Time', Date.now().toString())
+
+    // Add authentication
+    const token = getAuthToken()
+    if (token) {
+      options.headers.set('Authorization', `Bearer ${token}`)
+    }
   },
 
-  onRequestError({ error }) {
-    // Handle request errors
-    console.error('Request failed:', error)
+  // Called when request fails (network error, timeout, etc.)
+  onRequestError({ request, error }) {
+    console.error('Request failed:', request, error)
   }
 })
 ```
 
-### Response Hooks
+### Response Interceptors
 
 ```typescript
-const api = createVeloxa({
-  onResponse({ response }) {
-    // Handle successful response
+const api = veloxa.create({
+  // Called after successful response (status < 400)
+  onResponse({ request, response, options }) {
     console.log('Response status:', response.status)
+
+    // Modify response data
+    if (response._data) {
+      response._data = transformData(response._data)
+    }
   },
 
-  onResponseError({ response, error }) {
-    // Handle response errors (4xx, 5xx)
-    console.error('Response error:', response.status, error)
+  // Called on response error (status >= 400)
+  onResponseError({ request, response, options }) {
+    console.error('Response error:', response.status, response.statusText)
+
+    // Handle specific status codes
+    if (response.status === 401) {
+      redirectToLogin()
+    }
   }
 })
 ```
 
-### Multiple Hooks
+### Multiple Interceptors
+
+Interceptors can be arrays and will be executed in order:
 
 ```typescript
-const api = createVeloxa({
+const api = veloxa.create({
   onRequest: [
-    (context) => {
-      /* First hook */
+    (ctx) => {
+      console.log('First')
     },
-    (context) => {
-      /* Second hook */
+    (ctx) => {
+      console.log('Second')
+    },
+    (ctx) => {
+      console.log('Third')
     }
   ]
 })
 ```
 
+### Async Interceptors
+
+Interceptors support async operations:
+
+```typescript
+const api = veloxa.create({
+  async onRequest({ options }) {
+    // Fetch token asynchronously
+    const token = await getTokenAsync()
+    options.headers.set('Authorization', `Bearer ${token}`)
+  }
+})
+```
+
 ## 🛡️ Error Handling
 
+Veloxa provides detailed error information through `VeloxaError`:
+
 ```typescript
-import { VeloxaError } from 'veloxa'
+import { veloxa, VeloxaError } from 'veloxa'
 
 try {
-  const data = await veloxa('/api/endpoint')
+  const data = await veloxa('/api/users/999')
 } catch (error) {
   if (error instanceof VeloxaError) {
-    console.log('Status code:', error.statusCode)
-    console.log('Status text:', error.statusText)
-    console.log('Response data:', error.data)
-    console.log('Request:', error.request)
-    console.log('Response:', error.response)
+    // HTTP status information
+    console.log('Status:', error.status) // 404
+    console.log('Status text:', error.statusText) // "Not Found"
+
+    // Response data (if available)
+    console.log('Error data:', error.data) // { message: "User not found" }
+
+    // Request details
+    console.log('Request:', error.request) // Original request
+    console.log('Options:', error.options) // Request options
+
+    // Full response object
+    console.log('Response:', error.response) // Response object
+
+    // Original error (for network errors)
+    console.log('Cause:', error.cause)
   }
 }
 ```
 
-## 🌟 Advanced Usage
+### Ignore Response Errors
 
-### FormData and File Upload
-
-```typescript
-const formData = new FormData()
-formData.append('file', fileInput.files[0])
-formData.append('name', 'Document')
-
-const result = await veloxa('/api/upload', {
-  method: 'POST',
-  body: formData
-})
-```
-
-### URLSearchParams
+By default, Veloxa throws errors for 4xx and 5xx status codes. You can disable this:
 
 ```typescript
-const result = await veloxa('/api/form', {
-  method: 'POST',
-  headers: {
-    'content-type': 'application/x-www-form-urlencoded'
-  },
-  body: {
-    username: 'john',
-    password: 'secret'
-  }
-})
-```
-
-### Streaming Response
-
-```typescript
-const response = await veloxa('/api/stream', {
-  responseType: 'stream'
+const response = await veloxa.raw('/api/users', {
+  ignoreResponseError: true
 })
 
-const reader = response.getReader()
-while (true) {
-  const { done, value } = await reader.read()
-  if (done) break
-  console.log(new TextDecoder().decode(value))
+if (response.status === 404) {
+  console.log('User not found')
 }
 ```
-
-### Creating Custom Instances
-
-```typescript
-// API client with default configuration
-const apiClient = createVeloxa({
-  baseURL: 'https://api.example.com',
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${getToken()}`
-  },
-  timeout: 10000,
-  retry: 2
-})
-
-// Auth client
-const authClient = createVeloxa({
-  baseURL: 'https://auth.example.com',
-  onRequest({ options }) {
-    // Add authentication headers
-  }
-})
-```
-
-## 🔄 Migration Guide
-
-### Migrating from Axios
-
-```typescript
-import axios from 'axios'
-import { veloxa } from 'veloxa'
-
-// Axios
-const response = await axios.get('/api/users')
-const data = response.data
-
-// Veloxa
-const data = await veloxa('/api/users')
-```
-
-### Migrating from Fetch
-
-```typescript
-// Fetch
-const response = await fetch('/api/users', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ name: 'John' })
-})
-const data = await response.json()
-
-// Veloxa
-const data = await veloxa('/api/users', {
-  method: 'POST',
-  body: { name: 'John' }
-})
-```
-
-## 🎯 TypeScript Support
-
-Veloxa is written in TypeScript and provides excellent type safety:
-
-```typescript
-interface ApiResponse<T> {
-  data: T
-  message: string
-  status: number
-}
-
-interface User {
-  id: number
-  name: string
-  email: string
-}
-
-// Fully typed response
-const response = await veloxa<ApiResponse<User>>('/api/users/1')
-// response.data is typed as User
-// response.message is typed as string
-// response.status is typed as number
-```
-
-## 🌐 Browser Support
-
-Veloxa works in all modern browsers and environments that support:
-
-- Fetch API
-- AbortController (for timeouts)
-- Headers constructor
 
 ## 📄 License
 
-[MIT License](LICENSE) © OpenKnights Contributors
+[MIT](./LICENSE) License © 2025-PRESENT [king3](https://github.com/coderking3)
+
+## 🤝 Contributing
+
+Contributions, issues and feature requests are welcome!
+
+Feel free to check the [issues page](https://github.com/OpenKnights/better-mock-server/issues).
 
 ## 🙏 Acknowledgments
 
-- v1.0 inspired by [ofetch](https://github.com/unjs/ofetch)
-- Built with TypeScript and modern web standards
-- Powered by native Fetch API
-
----
-
-<p align="center">
-  <strong>Made with ❤️ by the OpenKnights team</strong>
-</p>
+- Inspired by [ofetch](https://github.com/unjs/ofetch)
+- Built with ❤️ using TypeScript
+- Powered by native Web Standards
