@@ -2,19 +2,29 @@ import type {
   ResolvedVeloxaOptions,
   ResponseType,
   VeloxaContext,
-  VeloxaHook,
+  VeloxaInterceptor,
+  VeloxaInterceptors,
   VeloxaOptions,
+  VeloxaProcessor,
   VeloxaRequest
 } from './types'
 
 import { PAYLOAD_METHODS, TEXT_TYPES } from './constants'
 
-export { createDefu as createMerge, defu as merge } from 'defu'
-
+/**
+ * Check if the HTTP method supports payload/body
+ * @param method - HTTP method (default: 'GET')
+ * @returns true if the method supports payload (PATCH, POST, PUT, DELETE)
+ */
 export function isPayloadMethod(method = 'GET') {
   return PAYLOAD_METHODS.has(method.toUpperCase())
 }
 
+/**
+ * Check if a value can be serialized to JSON
+ * @param value - Value to check
+ * @returns true if the value is JSON serializable
+ */
 export function isJSONSerializable(value: any) {
   if (value === undefined) {
     return false
@@ -29,14 +39,6 @@ export function isJSONSerializable(value: any) {
   if (Array.isArray(value)) {
     return true
   }
-  if (value.buffer) {
-    return false
-  }
-  // `FormData` and `URLSearchParams` should't have a `toJSON` method,
-  // but Bun adds it, which is non-standard.
-  if (value instanceof FormData || value instanceof URLSearchParams) {
-    return false
-  }
   return (
     (value.constructor && value.constructor.name === 'Object') ||
     typeof value.toJSON === 'function'
@@ -45,7 +47,12 @@ export function isJSONSerializable(value: any) {
 
 const JSON_RE = /^application\/(?:[\w!#$%&*.^`~-]*\+)?json(;.+)?$/i
 
-// This provides reasonable defaults for the correct parser based on Content-Type header.
+/**
+ * Detect response type based on Content-Type header
+ * Provides reasonable defaults for the correct parser
+ * @param _contentType - Content-Type header value
+ * @returns The detected response type (json, text, stream, or blob)
+ */
 export function detectResponseType(_contentType = ''): ResponseType {
   if (!_contentType) {
     return 'json'
@@ -58,7 +65,7 @@ export function detectResponseType(_contentType = ''): ResponseType {
     return 'json'
   }
 
-  // SSE
+  // SSE (Server-Sent Events)
   // https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#sending_events_from_the_server
   if (contentType === 'text/event-stream') {
     return 'stream'
@@ -71,38 +78,48 @@ export function detectResponseType(_contentType = ''): ResponseType {
   return 'blob'
 }
 
+/**
+ * Resolve and normalize Veloxa options
+ * @param request - The request URL or Request object
+ * @param options - User-provided request options
+ * @returns Resolved options with normalized headers
+ */
 export function resolveVeloxaOptions<
   R extends ResponseType = ResponseType,
   T = any
 >(
   request: VeloxaRequest,
-  input: VeloxaOptions<R, T> | undefined,
-  Headers: typeof globalThis.Headers
+  options: VeloxaOptions<R, T> | undefined
 ): ResolvedVeloxaOptions<R, T> {
-  // Gen headers
-  const headers = genHeaders(
-    input?.headers ?? (request as Request)?.headers,
-    Headers
-  )
+  const headers = new Headers(options?.headers ?? (request as Request)?.headers)
 
   return {
-    ...input,
+    ...options,
     headers
   }
 }
 
-function genHeaders(
-  input: HeadersInit | undefined,
-  Headers: typeof globalThis.Headers
-): Headers {
-  return new Headers(input)
-}
+/**
+ * Create a processor function
+ * @param processor - The processor function
+ * @returns The same processor function (identity function for type safety)
+ */
+export const createProcessor = (processor: VeloxaProcessor) => processor
 
-export async function callHooks<C extends VeloxaContext = VeloxaContext>(
-  context: C,
-  hooks: VeloxaHook<C> | VeloxaHook<C>[] | undefined
+/**
+ * Call interceptor hooks for a specific lifecycle stage
+ * @param type - The interceptor type (onRequest, onRequestError, onResponse, onResponseError)
+ * @param context - The current request context
+ */
+export async function callInterceptor<C extends VeloxaContext = VeloxaContext>(
+  type: keyof VeloxaInterceptors,
+  context: C
 ): Promise<void> {
-  if (!hooks) return
+  if (!context.options[type]) return
+
+  const hooks = context.options[type] as
+    | VeloxaInterceptor<C>
+    | VeloxaInterceptor<C>[]
 
   if (Array.isArray(hooks)) {
     for (const hook of hooks) {

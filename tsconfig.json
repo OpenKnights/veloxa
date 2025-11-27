@@ -3,13 +3,20 @@
   "compilerOptions": {
     "target": "esnext",
     "lib": ["esnext", "DOM", "DOM.Iterable"],
+    "baseUrl": ".",
     "module": "esnext",
     "moduleResolution": "bundler",
+    "ignoreDeprecations": "6.0",
+    "paths": {
+      "#/*": ["./*"],
+      "#types/*": ["types/*"]
+    },
     "resolveJsonModule": true,
+    "types": ["node"],
     "strict": true,
     "declaration": true,
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "**/mockServer/**/*.ts"]
+  "include": ["**/*.ts"]
 }

@@ -1,6 +1,6 @@
 import { defineConfig } from '@king-3/eslint-config'
 
-const eslintConfig = defineConfig(
+export default defineConfig(
   {
     typescript: true
   },
@@ -10,5 +10,3 @@ const eslintConfig = defineConfig(
     }
   }
 )
-
-export default eslintConfig
