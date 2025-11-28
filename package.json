@@ -57,7 +57,7 @@
     "@king-3/prettier-config": "^3.4.0",
     "@types/node": "^24.5.2",
     "ansis": "^4.2.0",
-    "better-mock-server": "^1.0.0",
+    "better-mock-server": "^1.1.0",
     "bumpp": "^10.2.3",
     "eslint": "^9.39.1",
     "h3": "2.0.1-rc.5",

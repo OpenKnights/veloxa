@@ -37,8 +37,8 @@ importers:
         specifier: ^4.2.0
         version: 4.2.0
       better-mock-server:
-        specifier: ^1.0.0
-        version: 1.0.0(h3@2.0.1-rc.5)
+        specifier: ^1.1.0
+        version: 1.1.0(h3@2.0.1-rc.5)
       bumpp:
         specifier: ^10.2.3
         version: 10.3.2
@@ -768,8 +768,8 @@ packages:
     resolution: {integrity: sha512-a28v2eWrrRWPpJSzxc+mKwm0ZtVx/G8SepdQZDArnXYU/XS+IF6mp8aB/4E+hH1tyGCoDo3KlUCdlSxGDsRkAw==}
     hasBin: true
 
-  better-mock-server@1.0.0:
-    resolution: {integrity: sha512-Z9eNHDl6nIChxiUI3Ey8isFr16NzD8agBut5r3jgHr1XSTu7IU/JiwhaT8pYdPV5k1LNgTiBj0SEPyPygbkltg==}
+  better-mock-server@1.1.0:
+    resolution: {integrity: sha512-3UiZg7JktmaCdiI2IZNBVDucy+VwRtFvZcc2HqhVOlDUKSxyUXvgcvZ5NWYeUOB7+nwBcRpkJzUdRMXnB278Cw==}
     peerDependencies:
       h3: ^2.0.1-rc.5
 
@@ -2673,7 +2673,7 @@ snapshots:
 
   baseline-browser-mapping@2.8.31: {}
 
-  better-mock-server@1.0.0(h3@2.0.1-rc.5):
+  better-mock-server@1.1.0(h3@2.0.1-rc.5):
     dependencies:
       h3: 2.0.1-rc.5
 
